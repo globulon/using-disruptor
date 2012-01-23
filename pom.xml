@@ -2,11 +2,11 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.promindis</groupId>
-    <artifactId>disruptor_2.9.1</artifactId>
+    <artifactId>using-disruptor_2.9.1</artifactId>
     <packaging>jar</packaging>
-    <description>disruptor</description>
+    <description>using-disruptor</description>
     <version>0.1-SNAPSHOT</version>
-    <name>disruptor</name>
+    <name>using-disruptor</name>
     <organization>
         <name>com.promindis</name>
     </organization>
