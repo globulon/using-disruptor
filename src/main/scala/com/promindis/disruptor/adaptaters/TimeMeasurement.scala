@@ -13,15 +13,24 @@ import System._
  *  doSomethingWith(elapsedTime)
  * }
  * No exception management from now
- * */
+ **/
 object TimeMeasurement {
 
-  def measured(block:  => Unit) = {
+  implicit def toFrequency(value: Long) = new {
+    def throughput(during: Long): Long = {
+      (value * 1000L) / during
+    }
+  }
+
+
+  def sampling(block: => Unit) = {
     val start = currentTimeMillis
     block
     val end = currentTimeMillis
     new {
-      def getting[T](f: Long => T) = { f(end - start)}
+      def provided[T](f: Long => T) = {
+        f(end - start)
+      }
     }
   }
 }

@@ -12,9 +12,10 @@ import com.promindis.disruptor.adaptaters.Shooter
  * Reproduces LMAX diamond configuration
  */
 object Diamond {
-  val RING_BUFFER_SIZE = 1024 * 8
-  val ITERATIONS = 1000L * 1000L * 50L
-  val RUNS = 3
+  val RING_BUFFER_SIZE = 1024 * 1024
+  val ITERATIONS = 1000L * 1000L * 10L
+  val RUNS = 5
+
 
   def challenge(): Long = {
 
@@ -33,21 +34,22 @@ object Diamond {
 
     rb.setGatingSequences(consumerThree.getSequence);
 
-    val shooter = Shooter(ITERATIONS, rb, fillEvent )
+    val shooter = Shooter(ITERATIONS, rb, fillEvent)
 
-    measured {
-      executing(consumerOne, consumerTwo, consumerThree){
+    sampling {
+      executing(consumerOne, consumerTwo, consumerThree) {
         shooter ! 'fire
         countDownLatch.await();
-     }} getting { elapsedTime =>
-      (ITERATIONS * 1000L) / elapsedTime
+      }
+    } provided {
+      ITERATIONS.throughput(_)
     }
 
   }
 
   def main(args: Array[String]) {
     for (_ <- 1 to RUNS) {
-      println("Nb Op/s: " +  challenge())
+      println("Nb Op/s: " + challenge())
     }
   }
 }
