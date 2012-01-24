@@ -1,13 +1,15 @@
 package com.promindis.disruptor.sample.canonical
 
 import com.lmax.disruptor.RingBuffer
-import EventModule.ValueEvent
 import actors.Actor
+import com.promindis.disruptor.adaptaters.EventModule.ValueEvent
 
 /**
  * User: omadas
  * Date: 23/01/12
  * Time: 12:51
+ * Just get next sequence from ringBuffer and
+ * publish a new event
  */
 
 class Publisher(val ringBuffer: RingBuffer[ValueEvent]) extends Actor {

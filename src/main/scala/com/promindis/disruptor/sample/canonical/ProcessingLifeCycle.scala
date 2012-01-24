@@ -9,6 +9,11 @@ import java.util.concurrent.Executors._
  * User: omadas
  * Date: 23/01/12
  * Time: 12:40
+ * Manages the event processor life cycle
+ * An event processor must be started
+ * so it must halted
+ * No doing that will keep the thread in the pool
+ * hanging
  */
 
 class ProcessingLifeCycle[T](val eventProcessor: BatchEventProcessor[T]) extends Actor {
