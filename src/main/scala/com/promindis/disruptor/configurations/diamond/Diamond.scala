@@ -1,17 +1,16 @@
 package com.promindis.disruptor.configurations.diamond
 
-import com.promindis.disruptor.adaptaters.EventModule._
+import com.promindis.disruptor.adapters.EventModule._
 import java.util.concurrent.CountDownLatch
 import com.lmax.disruptor._
-import com.promindis.disruptor.adaptaters.ProcessorLifeCycle._
-import com.promindis.disruptor.adaptaters.RingBufferFactory._
-import com.promindis.disruptor.adaptaters.TimeMeasurement._
-import com.promindis.disruptor.adaptaters.Shooter
+import com.promindis.disruptor.adapters.RingBufferFactory._
+import com.promindis.disruptor.adapters.Shooter
+import com.promindis.disruptor.configurations.Scenario
 
 /**
  * Reproduces LMAX diamond configuration
  */
-object Diamond {
+object Diamond extends Scenario{
   val RING_BUFFER_SIZE = 1024 * 1024
   val ITERATIONS = 1000L * 1000L * 10L
   val RUNS = 5
@@ -36,14 +35,10 @@ object Diamond {
 
     val shooter = Shooter(ITERATIONS, rb, fillEvent)
 
-    sampling {
-      executing(consumerOne, consumerTwo, consumerThree) {
-        shooter ! 'fire
-        countDownLatch.await();
-      }
-    } provided {
-      ITERATIONS.throughput(_)
-    }
+    play {
+      shooter ! 'fire
+      countDownLatch.await();
+    }(consumerOne, consumerTwo, consumerThree)
 
   }
 

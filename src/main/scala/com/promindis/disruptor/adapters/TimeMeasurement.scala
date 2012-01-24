@@ -1,4 +1,4 @@
-package com.promindis.disruptor.adaptaters
+package com.promindis.disruptor.adapters
 
 import System._
 
@@ -21,7 +21,6 @@ object TimeMeasurement {
       (value * 1000L) / during
     }
   }
-
 
   def sampling(block: => Unit) = {
     val start = currentTimeMillis

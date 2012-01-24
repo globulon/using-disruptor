@@ -1,4 +1,4 @@
-package com.promindis.disruptor.adaptaters
+package com.promindis.disruptor.adapters
 
 import com.lmax.disruptor.RingBuffer
 import actors.Actor

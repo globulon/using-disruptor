@@ -1,15 +1,14 @@
 package com.promindis.disruptor.configurations.unicast
 
-import com.promindis.disruptor.adaptaters.RingBufferFactory._
+import com.promindis.disruptor.adapters.RingBufferFactory._
 import com.lmax.disruptor.BatchEventProcessor
-import com.promindis.disruptor.adaptaters.EventModule.{Handler, ValueEvent, ValueEventFactory}
+import com.promindis.disruptor.adapters.EventModule.{Handler, ValueEvent, ValueEventFactory}
 import java.util.concurrent.CountDownLatch
-import com.promindis.disruptor.adaptaters.{EventModule, Shooter}
-import com.promindis.disruptor.adaptaters.TimeMeasurement._
-import com.promindis.disruptor.adaptaters.ProcessorLifeCycle._
+import com.promindis.disruptor.adapters.{EventModule, Shooter}
+import com.promindis.disruptor.configurations.Scenario
 
 
-object UnicastWithShooter {
+object UnicastWithShooter extends Scenario{
   val RING_BUFFER_SIZE = 1024 * 1024
   val ITERATIONS= 1000L * 1000L * 50L
   val RUNS = 5
@@ -20,19 +19,15 @@ object UnicastWithShooter {
     val barrier =  rb.newBarrier()
     val countDownLatch = new CountDownLatch(1)
     val handler = Handler("P1", latch = Some(countDownLatch), expectedShoot = ITERATIONS)
-    val processor = new BatchEventProcessor[ValueEvent](rb, barrier, handler);
-    rb.setGatingSequences(processor.getSequence)
+    val withProcessor = new BatchEventProcessor[ValueEvent](rb, barrier, handler);
+    rb.setGatingSequences(withProcessor.getSequence)
 
     val shooter = Shooter(ITERATIONS, rb, EventModule.fillEvent)
 
-    sampling {
-      executing(processor) {
-        shooter ! 'fire
-        countDownLatch.await()
-      }
-    } provided {
-      ITERATIONS.throughput(_)
-    }
+    play{
+      shooter ! 'fire
+      countDownLatch.await()
+    }(withProcessor)
 
   }
 

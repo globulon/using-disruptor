@@ -1,4 +1,4 @@
-package com.promindis.disruptor.adaptaters
+package com.promindis.disruptor.adapters
 
 import com.lmax.disruptor._
 import java.util.concurrent.CountDownLatch
