@@ -5,9 +5,10 @@ import com.lmax.disruptor.{SequenceBarrier, BatchEventProcessor, RingBuffer, Eve
 
 
 object Builder {
+  type Context[X] = (BatchEventProcessor[X], EventHandler[X])
 
-  def fork[T](handler: EventHandler[T], rb: RingBuffer[T], currentBarrier: SequenceBarrier) = new StateMonad[SequenceBarrier, List[(BatchEventProcessor[T], EventHandler[T])] ] {
-    def apply(list: List[(BatchEventProcessor[T], EventHandler[T])]) = {
+  def fork[T](handler: EventHandler[T], rb: RingBuffer[T], currentBarrier: SequenceBarrier) = new StateMonad[SequenceBarrier, List[(Context[T])] ] {
+    def apply(list: List[Context[T]]) = {
       list match {
         case (p::ps)=>
           val newProcessor = new BatchEventProcessor[T](rb, currentBarrier, handler)
@@ -19,9 +20,8 @@ object Builder {
     }
   }
 
-
-  def pipe[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[SequenceBarrier, List[(BatchEventProcessor[T], EventHandler[T])] ] {
-    def apply(list: List[(BatchEventProcessor[T], EventHandler[T])]) = {
+  def pipe[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[SequenceBarrier, List[Context[T]] ] {
+    def apply(list: List[Context[T]]) = {
       list match {
         case (p::ps)=>
           val newBarrier = rb.newBarrier(p._1.getSequence)
@@ -36,8 +36,8 @@ object Builder {
   }
 
 
-  def join[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[SequenceBarrier, List[(BatchEventProcessor[T], EventHandler[T])] ] {
-    def apply(list: List[(BatchEventProcessor[T], EventHandler[T])]) = {
+  def join[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[SequenceBarrier, List[Context[T]] ] {
+    def apply(list: List[Context[T]]) = {
       list match {
         case (p::ps)=>
           val sequences = list.unzip._1.map{_.getSequence}
