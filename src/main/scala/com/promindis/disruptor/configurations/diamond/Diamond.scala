@@ -38,5 +38,4 @@ object Diamond extends Scenario{
 
   }
 
-  def main(args: Array[String]) { run(Configuration())}
 }

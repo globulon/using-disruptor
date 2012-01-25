@@ -26,6 +26,4 @@ object UnicastWithShooter extends Scenario{
       countDownLatch.await()
     }
   }
-
-  def main(args: Array[String]) { run(Configuration())}
 }

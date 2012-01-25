@@ -11,7 +11,6 @@ final case class Configuration(
   runs: Int  = 5
 )
 
-
 trait Scenario {
 
   final def playWith[T](processors: List[BatchEventProcessor[T]])(scenario: => Unit)(implicit config: Configuration) = {
@@ -26,12 +25,13 @@ trait Scenario {
 
   def challenge(implicit configuration: Configuration): Long
 
-  def run(implicit config: Configuration)  {
+  def run(implicit config: Configuration): Seq[Long] =  {
     val config = Configuration()
-    for (_ <- 1 to config.runs) {
-      println("Nb Op/s: " + challenge(config))
-    }
+    for (_ <- 1 to config.runs) yield challenge(config)
   }
 
-
+  def main(args: Array[String]) {
+    run(Configuration())
+      .foreach{value => println("Nb Op/s: " + value)}
+  }
 }
