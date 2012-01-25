@@ -23,6 +23,7 @@ object Pipe_Line extends Scenario{
 
     val consumers = chain(List())._2
     val processors = consumers.unzip._1
+    rb.setGatingSequences(processors.head.getSequence)
     val shooter = Shooter(config.iterations, rb, EventModule.fillEvent)
 
     playWith(processors){
