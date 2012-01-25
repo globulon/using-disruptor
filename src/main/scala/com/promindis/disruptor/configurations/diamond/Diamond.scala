@@ -13,21 +13,21 @@ import com.promindis.disruptor.support.StateMonad
  */
 object Diamond extends Scenario{
 
-//  def join[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[Unit, Seq[(BatchEventProcessor[T], EventHandler[T])] ] {
-//    def apply(list: Seq[(BatchEventProcessor[T], EventHandler[T])]) = {
-//      list match {
-//        case (p::ps)=>
-//          val sequences = list.unzip._1.map{_.getSequence}
-//          val newProcessor = new BatchEventProcessor[T](rb, rb.newBarrier(sequences: _*), handler)
-//          rb.setGatingSequences(newProcessor.getSequence)
-//          ((), (newProcessor, handler)::p::ps)
-//        case _ =>
-//          val newProcessor = new BatchEventProcessor[T](rb, rb.newBarrier(), handler)
-//          rb.setGatingSequences(newProcessor.getSequence)
-//          ((), (newProcessor, handler)::Nil)
-//      }
-//    }
-//  }
+  def join[T](handler: EventHandler[T], rb: RingBuffer[T]) = new StateMonad[Unit, Seq[(BatchEventProcessor[T], EventHandler[T])] ] {
+    def apply(list: Seq[(BatchEventProcessor[T], EventHandler[T])]) = {
+      list match {
+        case (p::ps)=>
+          val sequences = list.unzip._1.map{_.getSequence}
+          val newProcessor = new BatchEventProcessor[T](rb, rb.newBarrier(sequences: _*), handler)
+          rb.setGatingSequences(newProcessor.getSequence)
+          ((), (newProcessor, handler)::p::ps)
+        case _ =>
+          val newProcessor = new BatchEventProcessor[T](rb, rb.newBarrier(), handler)
+          rb.setGatingSequences(newProcessor.getSequence)
+          ((), (newProcessor, handler)::Nil)
+      }
+    }
+  }
   
   def challenge(implicit config: Configuration): Long = {
 
