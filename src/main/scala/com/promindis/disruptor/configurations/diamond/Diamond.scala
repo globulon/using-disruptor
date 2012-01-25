@@ -6,7 +6,7 @@ import com.lmax.disruptor._
 import com.promindis.disruptor.adapters.RingBufferFactory._
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
 import com.promindis.disruptor.adapters.Builder._
-import com.promindis.disruptor.adapters.{EventModule, Builder, Shooter}
+import com.promindis.disruptor.adapters.{EventModule, Shooter}
 
 /**
  * Reproduces LMAX diamond configuration
@@ -20,9 +20,9 @@ object Diamond extends Scenario {
     val countDownLatch = new CountDownLatch(1);
 
     val diamond = for {
-      barrier <- fork(Handler("one"), rb, rb.newBarrier())
-      _ <- fork(Handler("two"), rb, barrier)
-      _ <- join(Handler("three", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
+      barrier <- fork(Handler("C1"), rb, rb.newBarrier())
+      _ <- fork(Handler("C2"), rb, barrier)
+      _ <- join(Handler("C2", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
     } yield ()
 
     val consumers = diamond(List())._2

@@ -13,10 +13,10 @@ final case class Configuration(
 
 trait Scenario {
 
-  final def playWith[T](processors: Seq[BatchEventProcessor[T]])(scenario: => Unit)(implicit config: Configuration) = {
+  final def playWith[T](processors: Seq[BatchEventProcessor[T]])(bench: => Unit)(implicit config: Configuration) = {
     sampling {
       executing(processors:_*) {
-        scenario
+        bench
       }
     } provided {
       config.iterations.throughput(_)

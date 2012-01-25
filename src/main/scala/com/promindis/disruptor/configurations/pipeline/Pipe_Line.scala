@@ -16,9 +16,9 @@ object Pipe_Line extends Scenario{
     val countDownLatch = new CountDownLatch(1)
 
     val chain = for {
-      _ <- pipe[ValueEvent](Handler("P1"), rb)
-      _ <- pipe[ValueEvent](Handler("P2"), rb)
-      _ <- pipe[ValueEvent](Handler("P3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
+      _ <- pipe[ValueEvent](Handler("C1"), rb)
+      _ <- pipe[ValueEvent](Handler("C2"), rb)
+      _ <- pipe[ValueEvent](Handler("C3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
     } yield ()
 
     val consumers = chain(List())._2
