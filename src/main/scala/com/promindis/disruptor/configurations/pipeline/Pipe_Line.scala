@@ -4,35 +4,28 @@ import com.promindis.disruptor.adapters.RingBufferFactory._
 import java.util.concurrent.CountDownLatch
 
 import com.promindis.disruptor.adapters.EventModule.{Handler, ValueEvent, ValueEventFactory}
-import com.promindis.disruptor.adapters.{Shooter, EventModule}
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
-import com.lmax.disruptor.BatchEventProcessor
+import com.promindis.disruptor.adapters.{Builder, Shooter, EventModule}
+import Builder._
 
 
 object Pipe_Line extends Scenario{
 
-
-
   def challenge(implicit config: Configuration) = {
     val rb = ringBuffer(ValueEventFactory,size = config.ringBufferSize);
-
     val countDownLatch = new CountDownLatch(1)
-    val handlerOne = Handler("P1")
-    val handlerTwo = Handler("P2")
-    val handlerThree = Handler("P3", latch = Some(countDownLatch), expectedShoot = config.iterations)
 
-    val barrier =  rb.newBarrier()
-    val consumerOne = new BatchEventProcessor[ValueEvent](rb, barrier, handlerOne);
+    val chain = for {
+      _ <- pipe[ValueEvent](Handler("P1"), rb)
+      _ <- pipe[ValueEvent](Handler("P2"), rb)
+      _ <- pipe[ValueEvent](Handler("P3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
+    } yield ()
 
-    val consumerTwo = new BatchEventProcessor[ValueEvent](rb, rb.newBarrier(consumerOne.getSequence), handlerTwo);
-
-    val consumerThree = new BatchEventProcessor[ValueEvent](rb, rb.newBarrier(consumerTwo.getSequence), handlerThree);
-
-    rb.setGatingSequences(consumerThree.getSequence)
-
+    val consumers = chain(List())._2
+    val processors = consumers.unzip._1
     val shooter = Shooter(config.iterations, rb, EventModule.fillEvent)
 
-    playWith(List(consumerOne, consumerTwo, consumerThree)){
+    playWith(processors){
       shooter ! 'fire
       countDownLatch.await()
     }

@@ -7,13 +7,13 @@ import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
 final case class Configuration(
   ringBufferSize: Int = 1024 * 1024,
-  iterations: Long = 1000L * 1000L * 10L,
+  iterations: Long = 1000L * 1000L * 25L,
   runs: Int  = 5
 )
 
 trait Scenario {
 
-  final def playWith[T](processors: List[BatchEventProcessor[T]])(scenario: => Unit)(implicit config: Configuration) = {
+  final def playWith[T](processors: Seq[BatchEventProcessor[T]])(scenario: => Unit)(implicit config: Configuration) = {
     sampling {
       executing(processors:_*) {
         scenario

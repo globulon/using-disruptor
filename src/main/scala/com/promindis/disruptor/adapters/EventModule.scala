@@ -2,6 +2,7 @@ package com.promindis.disruptor.adapters
 
 import com.lmax.disruptor._
 import java.util.concurrent.CountDownLatch
+import util.PaddedLong
 
 /**
  * We need a value event and an event factory to
@@ -11,13 +12,13 @@ import java.util.concurrent.CountDownLatch
 
 object EventModule {
   class ValueEvent() {
-    var value: Long = _
+    val value = new PaddedLong()
 
     def setValue(newValue: Long) {
-      value = newValue
+      value.set(newValue)
     }
 
-    def getValue = value
+    def getValue = value.get()
   }
 
   object ValueEvent {
