@@ -7,6 +7,7 @@ import com.promindis.disruptor.adapters.RingBufferFactory._
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
 import com.promindis.disruptor.adapters.Builder._
 import com.promindis.disruptor.adapters.{EventModule, Shooter}
+import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
 /**
  * Reproduces LMAX diamond configuration

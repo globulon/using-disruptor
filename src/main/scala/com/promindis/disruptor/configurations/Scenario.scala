@@ -1,19 +1,19 @@
 package com.promindis.disruptor.configurations
 
-import com.lmax.disruptor.BatchEventProcessor
 import com.promindis.disruptor.adapters.TimeMeasurement._
+import com.promindis.disruptor.adapters.Processor
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
-
 
 final case class Configuration(
   ringBufferSize: Int = 1024 * 1024,
-  iterations: Long = 1000L * 1000L * 25L,
+  iterations: Long = 1000L * 1000L * 24L,
   runs: Int  = 5
 )
 
 trait Scenario {
 
-  final def playWith[T](processors: Seq[BatchEventProcessor[T]])(bench: => Unit)(implicit config: Configuration) = {
+  final def playWith[Proc](processors: Seq[Proc])(bench: => Unit)
+                          (implicit config: Configuration, c: Proc => Processor) = {
     sampling {
       executing(processors:_*) {
         bench
@@ -22,6 +22,7 @@ trait Scenario {
       config.iterations.throughput(_)
     }
   }
+
 
   def challenge(implicit configuration: Configuration): Long
 

@@ -7,7 +7,7 @@ import com.promindis.disruptor.adapters.EventModule.{Handler, ValueEvent, ValueE
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
 import com.promindis.disruptor.adapters.{Builder, Shooter, EventModule}
 import Builder._
-
+import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
 object Pipe_Line extends Scenario{
 

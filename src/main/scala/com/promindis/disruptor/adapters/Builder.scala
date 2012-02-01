@@ -1,6 +1,7 @@
 package com.promindis.disruptor.adapters
 
 import com.promindis.disruptor.support.StateMonad
+
 import com.lmax.disruptor.{SequenceBarrier, BatchEventProcessor, RingBuffer, EventHandler}
 
 
