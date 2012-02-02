@@ -3,7 +3,6 @@ package com.promindis.disruptor.port
 import java.util.concurrent.atomic.AtomicBoolean
 import com.lmax.disruptor._
 import com.promindis.disruptor.adapters.Processor
-import collection.immutable.NumericRange
 import annotation.tailrec
 
 final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarrier: SequenceBarrier, eventHandler: EventHandler[T])
@@ -12,20 +11,16 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
   val exceptionHandler: ExceptionHandler = new FatalExceptionHandler()
   val sequence: Sequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE)
 
-
   override def halt() {
     stopRunning()
     sequenceBarrier.alert()
   }
 
-
   def safely[T](f: => T) = {
     try {
       Some(f)
     } catch {
-      case ex: AlertException if (!running.get())=>
-        println("alsert stop")
-      None
+      case ex: AlertException if (!running.get())=> None
     }
   }
 
@@ -35,31 +30,25 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
     }
   }
 
-  def eventHandling(nextSequence: Long, availableSequence: Long): Option[Long]  = {
+  def handle(nextSequence: Long, asLast: Boolean) {
+    val event = ringBuffer.get(nextSequence)
+    eventHandler.onEvent(event, nextSequence, asLast)
+  }
 
-    NumericRange.inclusive(nextSequence, availableSequence, 1L).foreach { step =>
-      val event = Some(ringBuffer.get(nextSequence))
-      eventHandler.onEvent(event.get, nextSequence, nextSequence == availableSequence)
+  def handleEvents(nextSequence: Long, availableSequence: Long): Option[Long]  = {
+    for (index <- nextSequence to availableSequence){
+      handle(nextSequence, nextSequence == availableSequence)
     }
     Some(availableSequence)
-
-//    catch {
-//      case ex: Throwable => {
-//        println("exception")
-//        exceptionHandler.handleEventException(ex, nextSequence, event)
-//        sequence.set(nextSequence)
-//        nextSequence += 1
-//      }
-//    }
 
   }
 
   def loop() {
 
-    def processEvents(index: Long) = {
+    def processEvents(fromIndex: Long) = {
       for {
-        availableSequence <- nextSequence(index);
-        nextIndex <- eventHandling(index, availableSequence)
+        availableSequence <- nextSequence(fromIndex);
+        nextIndex <- handleEvents(fromIndex, availableSequence)
       } yield nextIndex
     }
 
@@ -85,7 +74,6 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
       stopRunning()
     }
   }
-
 
   def getSequence = sequence
 }
