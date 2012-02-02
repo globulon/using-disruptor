@@ -2,10 +2,9 @@ package com.promindis.disruptor.port
 
 import java.util.concurrent.atomic.AtomicBoolean
 import com.lmax.disruptor._
-import annotation.tailrec
 import com.promindis.disruptor.adapters.Processor
 import collection.immutable.NumericRange
-import com.promindis.disruptor.adapters.EventModule.ValueEvent
+import annotation.tailrec
 
 final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarrier: SequenceBarrier, eventHandler: EventHandler[T])
   extends Processor with EventProcessor {
@@ -20,31 +19,59 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
   }
 
 
+  def safely[T](f: => T) = {
+    try {
+      Some(f)
+    } catch {
+      case ex: AlertException if (!running.get())=>
+        println("alsert stop")
+      None
+    }
+  }
+
+  def nextSequence(l: Long) = {
+    safely{
+      sequenceBarrier.waitFor(l)
+    }
+  }
+
+  def eventHandling(nextSequence: Long, availableSequence: Long): Option[Long]  = {
+
+    NumericRange.inclusive(nextSequence, availableSequence, 1L).foreach { step =>
+      val event = Some(ringBuffer.get(nextSequence))
+      eventHandler.onEvent(event.get, nextSequence, nextSequence == availableSequence)
+    }
+    Some(availableSequence)
+
+//    catch {
+//      case ex: Throwable => {
+//        println("exception")
+//        exceptionHandler.handleEventException(ex, nextSequence, event)
+//        sequence.set(nextSequence)
+//        nextSequence += 1
+//      }
+//    }
+
+  }
+
   def loop() {
-    var nextSequence: Long = sequence.get + 1L
-    var event: Option[T] = None
-    var goOn = true
-    while (goOn) {
-      try {
-        val availableSequence: Long = sequenceBarrier.waitFor(nextSequence)
-        NumericRange.inclusive(nextSequence, availableSequence, 1L).foreach { step =>
-          val event = Some(ringBuffer.get(nextSequence))
-          eventHandler.onEvent(event.get, nextSequence, nextSequence == availableSequence)
-          nextSequence + 1
-        }
-        sequence.set(availableSequence)
-      } catch {
-        case ex: AlertException if (!running.get())=>
-            goOn = false
-            println("alsert stop")
-        case ex: Throwable => {
-          println("exception")
-          exceptionHandler.handleEventException(ex, nextSequence, event)
-          sequence.set(nextSequence)
-            nextSequence += 1
-        }
+
+    def processEvents(index: Long) = {
+      for {
+        availableSequence <- nextSequence(index);
+        nextIndex <- eventHandling(index, availableSequence)
+      } yield nextIndex
+    }
+
+    @tailrec def innerLoop(fromIndex: Long) {
+      val nextIndex = processEvents(fromIndex)
+      if (nextIndex.isDefined)  {
+        sequence.set(nextIndex.get)
+        innerLoop(nextIndex.get + 1)
       }
     }
+
+    innerLoop(sequence.get + 1L)
   }
 
   def stopRunning() {
