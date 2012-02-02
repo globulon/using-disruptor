@@ -34,6 +34,7 @@ object EventModule {
 
     def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) {
       counter += 1L
+      println(counter)
       for (l <- latch if (counter == expectedShoot) ) {
         l.countDown()
       }

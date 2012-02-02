@@ -5,9 +5,9 @@ import com.promindis.disruptor.adapters.Processor
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
 final case class Configuration(
-  ringBufferSize: Int = 1024 * 1024,
-  iterations: Long = 1000L * 1000L * 24L,
-  runs: Int  = 5
+  ringBufferSize: Int = 16,
+  iterations: Long = 36 ,
+  runs: Int  = 1
 )
 
 trait Scenario {
