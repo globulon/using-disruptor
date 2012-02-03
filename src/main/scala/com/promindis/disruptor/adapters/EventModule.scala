@@ -29,7 +29,7 @@ object EventModule {
     def newInstance(): ValueEvent = ValueEvent()
   }
 
-  case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent] {
+  case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent] with com.promindis.disruptor.port.EventHandler[ValueEvent]{
     var counter = 0L
 
     def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) {

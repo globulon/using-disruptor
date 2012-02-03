@@ -1,15 +1,20 @@
 package com.promindis.disruptor.port
 
 import java.util.concurrent.atomic.AtomicBoolean
-import com.lmax.disruptor._
+import com.lmax.disruptor.{AlertException , Sequence, Sequencer, EventProcessor, RingBuffer, SequenceBarrier}
 import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
 
-final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarrier: SequenceBarrier, eventHandler: EventHandler[T])
-  extends Processor with EventProcessor {
+
+trait BatchEventProcessor[T] extends Processor with EventProcessor {
+  type Handler <: EventHandler[T]
+  val ringBuffer: RingBuffer[T]
+  val  sequenceBarrier: SequenceBarrier
+  val eventHandler: Handler
+
   val running: AtomicBoolean = new AtomicBoolean(false)
-  val exceptionHandler: ExceptionHandler = new FatalExceptionHandler()
+  val exceptionHandler: ExceptionHandler = FatalExceptionHandler()
   val sequence: Sequence = new Sequence(INITIAL_CURSOR_VALUE)
 
   override def halt() {
@@ -25,7 +30,7 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
     case ex: Throwable =>
       print("exception raised")
       exceptionHandler.handleEventException(ex, sequence, forEvent)
-      Some(sequence)
+      None
   }
 
   def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
@@ -88,7 +93,12 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
   def getSequence = sequence
 }
 
-object BatcEventProcessor {
-  def apply[T](ringBuffer: RingBuffer[T], sequenceBarrier: SequenceBarrier, eventHandler: EventHandler[T]) =
-    new BatchEventProcessor[T](ringBuffer, sequenceBarrier, eventHandler)
+object BatchEventProcessor {
+  def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T]) =
+    new BatchEventProcessor[T]{
+      type Handler = EventHandler[T]
+      val eventHandler = handler
+      val ringBuffer = rb
+      val sequenceBarrier = sb
+    }
 }
