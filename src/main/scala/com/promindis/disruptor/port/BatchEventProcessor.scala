@@ -93,6 +93,19 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
   def getSequence = sequence
 }
 
+trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
+  type Handler <: LifeCycleAware[T]
+
+  def started() {
+    eventHandler.started()
+  }
+
+  def shutdown() {
+    eventHandler.stopped()
+  }
+
+}
+
 object BatchEventProcessor {
   def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T]) =
     new BatchEventProcessor[T]{
@@ -101,4 +114,13 @@ object BatchEventProcessor {
       val ringBuffer = rb
       val sequenceBarrier = sb
     }
+
+  def withLifeCycle[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: LifeCycleAware[T]) =
+    new MonitoredBatchEventProcessor[T]{
+      type Handler = LifeCycleAware[T]
+      val eventHandler = handler
+      val ringBuffer = rb
+      val sequenceBarrier = sb
+    }
+
 }
