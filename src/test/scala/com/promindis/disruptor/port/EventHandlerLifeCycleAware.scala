@@ -16,7 +16,7 @@ class EventHandlerLifeCycleAware[T](val latch: CountDownLatch, val expectedNumbe
   def started() { wasStarted = true}
 
   def stopped() {
-    wasStopped = false
+    wasStopped = true
     latch.countDown()
   }
 }

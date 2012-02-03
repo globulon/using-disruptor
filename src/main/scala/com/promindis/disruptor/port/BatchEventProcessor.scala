@@ -82,9 +82,13 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     running.set(false)
   }
 
+  def startRunning() {
+    sequenceBarrier.clearAlert()
+  }
+
   override def run() {
     if (running.compareAndSet(false, true)) {
-      sequenceBarrier.clearAlert()
+      startRunning()
       loop()
       stopRunning()
     }
@@ -96,13 +100,17 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
 trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
   type Handler <: LifeCycleAware[T]
 
-  def started() {
+
+  override def startRunning() {
+    super.startRunning()
     eventHandler.started()
   }
 
-  def shutdown() {
+  override def stopRunning()  {
+    super.stopRunning()
     eventHandler.stopped()
   }
+
 
 }
 

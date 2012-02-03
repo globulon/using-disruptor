@@ -33,9 +33,10 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
       countDownLatch.await(5, SECONDS)
     }
 
-    handler.started().should(beEqualTo(true))
-    handler.stopped().should(beEqualTo(true))
-    handler.count should (beEqualTo(configuration.iterations))
+    handler.wasStarted.should(beEqualTo(true))
+      .and(handler.wasStopped.should(beEqualTo(true)))
+        .and(handler.count should (beEqualTo(configuration.iterations)))
+
   }
 
   override def challenge(implicit configuration: Configuration) = 0L
