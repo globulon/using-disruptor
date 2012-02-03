@@ -2,6 +2,7 @@ package com.promindis.disruptor.port
 
 import java.util.concurrent.atomic.AtomicBoolean
 import com.lmax.disruptor._
+import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
 
@@ -9,7 +10,7 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
   extends Processor with EventProcessor {
   val running: AtomicBoolean = new AtomicBoolean(false)
   val exceptionHandler: ExceptionHandler = new FatalExceptionHandler()
-  val sequence: Sequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE)
+  val sequence: Sequence = new Sequence(INITIAL_CURSOR_VALUE)
 
   override def halt() {
     stopRunning()
