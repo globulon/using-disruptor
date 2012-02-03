@@ -69,7 +69,6 @@ final case class BatchEventProcessor[T](ringBuffer: RingBuffer[T], sequenceBarri
         innerLoop(lastIndex.get + 1)
       }
     }
-
     innerLoop(sequence.get + 1L)
   }
 
