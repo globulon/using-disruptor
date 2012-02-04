@@ -16,11 +16,11 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
     "get back expected number of event"                             ! e1^
     "get back expected number of events except one"                 ! e2
 
+
   implicit val config = Configuration(ringBufferSize = 16, iterations = 64, runs = 1)
 
   def setupFor(configuration: Configuration, handler: LifeCycleAware[ValueEvent]) = {
     val rb = ringBuffer(ValueEventFactory, size = configuration.ringBufferSize);
-
     val processor = BatchEventProcessor.withLifeCycle[ValueEvent](rb, rb.newBarrier(), handler);
     rb.setGatingSequences(processor.getSequence)
 
@@ -28,7 +28,8 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
     (processor, shooter)
   }
 
-  def run(processor: MonitoredBatchEventProcessor[EventModuleStub.ValueEvent] , shooter: Actor, handler: EventHandlerLifeCycleAware[ValueEvent]) {
+  def run[T](components: (BatchEventProcessor[T] , Actor), handler: EventHandlerLifeCycleAware[T]) {
+    val (processor, shooter) = components
     playWith(List(processor)) {
       shooter ! 'fire
       handler.latch.await(5, SECONDS)
@@ -37,27 +38,26 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
 
   def e1(implicit configuration: Configuration) = {
     val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations)
+    run(setupFor(configuration, handler), handler)
+    import handler._
+    import configuration._
 
-    val (processor, shooter) = setupFor(configuration, handler)
-    run(processor, shooter, handler)
-
-    handler.wasStarted.should(beEqualTo(true))
-      .and(handler.wasStopped.should(beEqualTo(true)))
-        .and(handler.count should (beEqualTo(configuration.iterations)))
-
+    handler.wasStarted
+      .and(handler.wasStopped)
+        .and(handledEvents should (beEqualTo(iterations)))
+          .and(receivedEvents should (beEqualTo(iterations)))
   }
 
   def e2(implicit configuration: Configuration) = {
     val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
+    import handler._
+    run(setupFor(configuration, handler), handler)
 
-    val (processor, shooter) = setupFor(configuration, handler)
-    run(processor, shooter, handler)
-
-    handler.wasStarted.should(beEqualTo(true))
-      .and(handler.wasStopped.should(beEqualTo(true)))
-        .and(handler.count should (beEqualTo(handler.failureIndex)))
-
-  }
+    handler.wasStarted
+      .and(handler.wasStopped)
+        .and(handledEvents should (beEqualTo(failureIndex)))
+          .and(receivedEvents should (beEqualTo(handledEvents + 1L)))
+ }
 
 
   override def challenge(implicit configuration: Configuration) = 0L

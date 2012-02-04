@@ -8,18 +8,21 @@ final class EventHandlerLifeCycleAware[T]
  val expectedNumberOfEvents: Long,
  val fail: Boolean) extends LifeCycleAware[T]{
 
-  val failureIndex = if (fail) new Random().nextInt(expectedNumberOfEvents.toInt) else -1
-  println("Failure expected at : " + failureIndex)
+  val failureIndex =
+    if (fail)
+      new Random().nextInt(expectedNumberOfEvents.toInt) + 1
+    else -1
 
   var wasStarted = false
-
   var wasStopped = false
 
-  var count = 0
+  var handledEvents = 0
+  var receivedEvents = 0
 
   def onEvent(event: T, sequence: Long, endOfBatch: Boolean)  {
-    if (count == failureIndex) throw new RuntimeException()
-    count += 1
+    receivedEvents += 1
+    if (handledEvents == failureIndex) throw new RuntimeException()
+    handledEvents += 1
   }
 
   def started() { wasStarted = true}

@@ -21,29 +21,29 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     sequenceBarrier.alert()
   }
 
-  def alert: PartialFunction[Throwable, Option[Long]] = {
+  private def alert: PartialFunction[Throwable, Option[Long]] = {
     case ex: AlertException if (!running.get())=> None
   }
 
-  def trap[E](sequence: Long, forEvent: E): PartialFunction[Throwable, Option[Long]] = {
+  private def trap[E](sequence: Long, forEvent: E): PartialFunction[Throwable, Option[Long]] = {
     case ex: Throwable =>
       exceptionHandler.handleEventException(ex, sequence, forEvent)
       None
   }
 
-  def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
+  private def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
     try {
       Some(f)
     } catch trap
   }
 
-  def nextSequence(l: Long) = {
+  private def nextSequence(l: Long) = {
     managing (alert){
       sequenceBarrier.waitFor(l)
     }
   }
 
-  def handlingEvent(sequence: Long, asLast: Boolean): Option[Long] = {
+  private def handlingEvent(sequence: Long, asLast: Boolean): Option[Long] = {
     val event = ringBuffer.get(sequence)
     managing(alert orElse trap(sequence, event)) {
       eventHandler.onEvent(event, sequence, asLast)
@@ -51,15 +51,15 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     }
   }
 
-  def handleEvents(nextSequence: Long, availableSequence: Long): Option[Long]  = {
-    val lastSequence: Option[Long] = (nextSequence to availableSequence).view.dropWhile{ index =>
-      handlingEvent(index, index == availableSequence).isDefined
-    }.take(1).headOption
-
-    if (lastSequence.toLeft(availableSequence).isLeft) None else Some(availableSequence)
+  @tailrec private def handleEvents(index: Long, availableSequence: Long): Option[Long]  = {
+    handlingEvent(index, index == availableSequence ) match {
+      case Some(step) if step == availableSequence => Some(step)
+      case Some(step) => handleEvents(step + 1L, availableSequence)
+      case None => None
+    }
   }
 
-  def loop() {
+  private def loop() {
 
     def processEvents(fromIndex: Long) = {
       for {
@@ -78,11 +78,11 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     innerLoop(sequence.get + 1L)
   }
 
-  def stopRunning() {
+  protected def stopRunning() {
     running.set(false)
   }
 
-  def startRunning() {
+  protected def startRunning() {
     sequenceBarrier.clearAlert()
   }
 
@@ -94,7 +94,7 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     }
   }
 
-  def getSequence = sequence
+  override def getSequence = sequence
 }
 
 trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
