@@ -5,6 +5,7 @@ import com.lmax.disruptor.EventFactory
 import java.util.concurrent.CountDownLatch
 
 object EventModuleStub {
+
   class ValueEvent() {
     val value = new PaddedLong()
 
@@ -41,5 +42,4 @@ object EventModuleStub {
     event.setValue(1234);
     event
   }
-
 }

@@ -6,7 +6,6 @@ import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
 
-
 trait BatchEventProcessor[T] extends Processor with EventProcessor {
   type Handler <: EventHandler[T]
   val ringBuffer: RingBuffer[T]
@@ -28,7 +27,6 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
 
   def trap[E](sequence: Long, forEvent: E): PartialFunction[Throwable, Option[Long]] = {
     case ex: Throwable =>
-      print("exception raised")
       exceptionHandler.handleEventException(ex, sequence, forEvent)
       None
   }
@@ -54,9 +52,11 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
   }
 
   def handleEvents(nextSequence: Long, availableSequence: Long): Option[Long]  = {
-    Some((nextSequence to availableSequence).dropWhile{ index =>
+    val lastSequence: Option[Long] = (nextSequence to availableSequence).view.dropWhile{ index =>
       handlingEvent(index, index == availableSequence).isDefined
-    }.headOption.getOrElse(availableSequence))
+    }.take(1).headOption
+
+    if (lastSequence.toLeft(availableSequence).isLeft) None else Some(availableSequence)
   }
 
   def loop() {
@@ -100,7 +100,6 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
 trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
   type Handler <: LifeCycleAware[T]
 
-
   override def startRunning() {
     super.startRunning()
     eventHandler.started()
@@ -110,8 +109,6 @@ trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
     super.stopRunning()
     eventHandler.stopped()
   }
-
-
 }
 
 object BatchEventProcessor {
