@@ -21,7 +21,7 @@ final class EventHandlerLifeCycleAware[T]
 
   def onEvent(event: T, sequence: Long, endOfBatch: Boolean)  {
     receivedEvents += 1
-    if (handledEvents == failureIndex) throw new RuntimeException()
+    if (sequence == failureIndex) throw new RuntimeException()
     handledEvents += 1
   }
 

@@ -15,15 +15,19 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
     "In nominal scenario the BatchEventProcessor test handler should"   ^
     "get back expected number of event"                             ! e1^
     p^
-    "In failing scenario the BatchEventProcessor test handler should"   ^
-    "get back expected number of events except one"                 ! e2
+    "In fatal failing scenario the BatchEventProcessor should"   ^
+    "process only the successfuly handled event and one unsuccessful"! e2 ^
+    p^
+  "In tolerant failing scenario the BatchEventProcessor should"   ^
+    "process all the  events"    ! e3
+
 
 
   implicit val config = Configuration(ringBufferSize = 16, iterations = 64, runs = 1)
 
-  def setupFor(handler: LifeCycleAware[ValueEvent])(implicit configuration: Configuration) = {
+  def setupFor(handler: LifeCycleAware[ValueEvent], exceptionHandler: ExceptionHandler)(implicit configuration: Configuration) = {
     val rb = ringBuffer(ValueEventFactory, size = configuration.ringBufferSize);
-    val processor = BatchEventProcessor.withLifeCycle[ValueEvent](rb, rb.newBarrier(), handler, SilentExceptionHandler());
+    val processor = BatchEventProcessor.withLifeCycle(rb, rb.newBarrier(), handler, exceptionHandler);
     rb.setGatingSequences(processor.getSequence)
 
     val shooter = Shooter(configuration.iterations, rb, EventModuleStub.fillEvent)
@@ -39,28 +43,39 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
   }
 
   def e1(implicit configuration: Configuration) = {
-    val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations)
-    run(setupFor(handler), handler)
-    import handler._
+    val eventHandler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations)
+    run(setupFor(eventHandler, SilentExceptionHandler.fatal()), eventHandler)
+    import eventHandler._
     import configuration._
 
-    handler.wasStarted
-      .and(handler.wasStopped)
+    eventHandler.wasStarted
+      .and(eventHandler.wasStopped)
         .and(handledEvents should (beEqualTo(iterations)))
           .and(receivedEvents should (beEqualTo(iterations)))
   }
 
   def e2(implicit configuration: Configuration) = {
-    val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
-    import handler._
-    run(setupFor(handler), handler)
+    val eventHandler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
+    import eventHandler._
+    run(setupFor(eventHandler, SilentExceptionHandler.fatal()), eventHandler)
 
-    handler.wasStarted
-      .and(handler.wasStopped)
+    eventHandler.wasStarted
+      .and(eventHandler.wasStopped)
         .and(handledEvents should (beEqualTo(failureIndex)))
           .and(receivedEvents should (beEqualTo(handledEvents + 1L)))
  }
 
+  def e3(implicit configuration: Configuration) = {
+    val eventHandler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
+    import eventHandler._
+    import configuration._
+    run(setupFor(eventHandler, SilentExceptionHandler.tolerant()), eventHandler)
+
+    eventHandler.wasStarted
+      .and(eventHandler.wasStopped)
+      .and(handledEvents should (beEqualTo(iterations - 1)))
+      .and(receivedEvents should (beEqualTo(iterations)))
+  }
 
   override def challenge(implicit configuration: Configuration) = 0L
 }

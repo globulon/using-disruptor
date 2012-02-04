@@ -30,7 +30,6 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
   private def trap[E](sequence: Long, forEvent: E): PartialFunction[Throwable, Option[Long]] = {
     case ex: Throwable =>
       exceptionHandler.handleEventException(ex, sequence, forEvent)
-      None
   }
 
   private def nextSequence(l: Long) = {
@@ -51,7 +50,10 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     handlingEvent(index, index == availableSequence ) match {
       case Some(step) if step == availableSequence => Some(step)
       case Some(step) => handleEvents(step + 1L, availableSequence)
-      case None => None
+      case _ => {
+        println("resend none for sequence: " + index)
+        None
+      }
     }
   }
 
