@@ -8,4 +8,11 @@ object Utils {
     }
   }
 
+  def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
+    try {
+      Some(f)
+    } catch trap
+  }
+
+
 }

@@ -5,15 +5,17 @@ import com.lmax.disruptor.{AlertException , Sequence, Sequencer, EventProcessor,
 import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
+import com.promindis.disruptor.support.Utils
+import Utils._
 
 trait BatchEventProcessor[T] extends Processor with EventProcessor {
   type Handler <: EventHandler[T]
   val ringBuffer: RingBuffer[T]
   val  sequenceBarrier: SequenceBarrier
   val eventHandler: Handler
+  val exceptionHandler: ExceptionHandler
 
   val running: AtomicBoolean = new AtomicBoolean(false)
-  val exceptionHandler: ExceptionHandler = FatalExceptionHandler()
   val sequence: Sequence = new Sequence(INITIAL_CURSOR_VALUE)
 
   override def halt() {
@@ -29,12 +31,6 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     case ex: Throwable =>
       exceptionHandler.handleEventException(ex, sequence, forEvent)
       None
-  }
-
-  private def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
-    try {
-      Some(f)
-    } catch trap
   }
 
   private def nextSequence(l: Long) = {
@@ -112,20 +108,22 @@ trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
 }
 
 object BatchEventProcessor {
-  def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T]) =
+  def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new BatchEventProcessor[T]{
       type Handler = EventHandler[T]
       val eventHandler = handler
       val ringBuffer = rb
       val sequenceBarrier = sb
+      val exceptionHandler = exHandler
     }
 
-  def withLifeCycle[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: LifeCycleAware[T]) =
+  def withLifeCycle[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: LifeCycleAware[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new MonitoredBatchEventProcessor[T]{
       type Handler = LifeCycleAware[T]
       val eventHandler = handler
       val ringBuffer = rb
       val sequenceBarrier = sb
+      val exceptionHandler = exHandler
     }
 
 }

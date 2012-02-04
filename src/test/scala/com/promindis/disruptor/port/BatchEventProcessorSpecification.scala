@@ -14,17 +14,19 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
                                                                         p^
     "In nominal scenario the BatchEventProcessor test handler should"   ^
     "get back expected number of event"                             ! e1^
+    p^
+    "In failing scenario the BatchEventProcessor test handler should"   ^
     "get back expected number of events except one"                 ! e2
 
 
   implicit val config = Configuration(ringBufferSize = 16, iterations = 64, runs = 1)
 
-  def setupFor(configuration: Configuration, handler: LifeCycleAware[ValueEvent]) = {
+  def setupFor(handler: LifeCycleAware[ValueEvent])(implicit configuration: Configuration) = {
     val rb = ringBuffer(ValueEventFactory, size = configuration.ringBufferSize);
-    val processor = BatchEventProcessor.withLifeCycle[ValueEvent](rb, rb.newBarrier(), handler);
+    val processor = BatchEventProcessor.withLifeCycle[ValueEvent](rb, rb.newBarrier(), handler, SilentExceptionHandler());
     rb.setGatingSequences(processor.getSequence)
 
-    val shooter = Shooter(config.iterations, rb, EventModuleStub.fillEvent)
+    val shooter = Shooter(configuration.iterations, rb, EventModuleStub.fillEvent)
     (processor, shooter)
   }
 
@@ -38,7 +40,7 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
 
   def e1(implicit configuration: Configuration) = {
     val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations)
-    run(setupFor(configuration, handler), handler)
+    run(setupFor(handler), handler)
     import handler._
     import configuration._
 
@@ -51,7 +53,7 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
   def e2(implicit configuration: Configuration) = {
     val handler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
     import handler._
-    run(setupFor(configuration, handler), handler)
+    run(setupFor(handler), handler)
 
     handler.wasStarted
       .and(handler.wasStopped)
