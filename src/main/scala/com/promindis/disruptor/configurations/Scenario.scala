@@ -5,9 +5,9 @@ import com.promindis.disruptor.adapters.Processor
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
 final case class Configuration(
-  ringBufferSize: Int = 1024 ,
-  iterations: Long = 1000L * 48L,
-  runs: Int  = 5
+  ringBufferSize: Int = 1024 * 1024 ,
+  iterations: Long = 1000L * 1000L * 48L,
+  runs: Int  = 8
 )
 
 trait Scenario {
@@ -31,7 +31,7 @@ trait Scenario {
   }
 
   def main(args: Array[String]) {
-    run(Configuration())
-      .foreach{value => println("Nb Op/s: " + value)}
+    val result = run(Configuration()).foldLeft(0L) { _ + _ }
+    println("Nb Op/s: " + result / Configuration().runs)
   }
 }
