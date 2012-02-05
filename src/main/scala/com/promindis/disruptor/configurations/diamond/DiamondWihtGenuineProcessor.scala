@@ -12,7 +12,7 @@ import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 /**
  * Reproduces LMAX diamond configuration
  */
-object Diamond extends Scenario {
+object DiamondWihtGenuineProcessor extends Scenario {
 
   def challenge(implicit config: Configuration): Long = {
 

@@ -9,7 +9,7 @@ import com.promindis.disruptor.adapters.{Builder, Shooter, EventModule}
 import Builder._
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
-object Pipe_Line extends Scenario{
+object PipeLineWithGenuineProcessor extends Scenario{
 
   def challenge(implicit config: Configuration) = {
     val rb = ringBuffer(ValueEventFactory,size = config.ringBufferSize);

@@ -57,15 +57,14 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     }
   }
 
+  def processEvents(fromIndex: Long) = {
+    for {
+      availableSequence <- nextSequence(fromIndex);
+      nextIndex <- handleEvents(fromIndex, availableSequence)
+    } yield nextIndex
+  }
+
   private def loop() {
-
-    def processEvents(fromIndex: Long) = {
-      for {
-        availableSequence <- nextSequence(fromIndex);
-        nextIndex <- handleEvents(fromIndex, availableSequence)
-      } yield nextIndex
-    }
-
     @tailrec def innerLoop(fromIndex: Long) {
       val lastIndex = processEvents(fromIndex)
       if (lastIndex.isDefined)  {
@@ -73,6 +72,7 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
         innerLoop(lastIndex.get + 1)
       }
     }
+
     innerLoop(sequence.get + 1L)
   }
 

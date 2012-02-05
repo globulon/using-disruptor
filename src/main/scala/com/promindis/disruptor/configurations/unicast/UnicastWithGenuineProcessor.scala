@@ -8,7 +8,7 @@ import com.promindis.disruptor.adapters.{EventModule, Shooter}
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
 
-object UnicastWithShooter extends Scenario{
+object UnicastWithGenuineProcessor extends Scenario{
 
   override def challenge(implicit config: Configuration) = {
     val rb = ringBuffer(ValueEventFactory,size = config.ringBufferSize);
