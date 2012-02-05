@@ -3,6 +3,7 @@ package com.promindis.disruptor.adapters
 import com.lmax.disruptor._
 import java.util.concurrent.CountDownLatch
 import util.PaddedLong
+import com.promindis.disruptor.port.EventHandler
 
 /**
  * We need a value event and an event factory to
@@ -29,18 +30,23 @@ object EventModule {
     def newInstance(): ValueEvent = ValueEvent()
   }
 
-  case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent] with com.promindis.disruptor.port.EventHandler[ValueEvent]{
+  class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent]{
     var counter = 0L
 
     def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) {
       counter += 1L
-//      println(counter)
-      for (l <- latch if (counter == expectedShoot) ) {
-        l.countDown()
+      if (counter == expectedShoot) {
+        for (l <- latch)
+          l.countDown()
       }
     }
 
     override def toString = "[" + name   + ": counter => " + counter  + "]"
+  }
+
+  object Handler {
+    def apply(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None): EventHandler[ValueEvent] =
+      new Handler(name, expectedShoot, latch)
   }
 
   def fillEvent(event: ValueEvent): ValueEvent = {

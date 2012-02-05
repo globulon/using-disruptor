@@ -5,8 +5,6 @@ import com.lmax.disruptor.{AlertException , Sequence, Sequencer, EventProcessor,
 import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
-import com.promindis.disruptor.support.Utils
-import Utils._
 
 trait BatchEventProcessor[T] extends Processor with EventProcessor {
   type Handler <: EventHandler[T]
@@ -23,40 +21,43 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     sequenceBarrier.alert()
   }
 
-  private def alert: PartialFunction[Throwable, Option[Long]] = {
-    case ex: AlertException if (!running.get())=> None
-  }
-
-  private def trap[E](sequence: Long, forEvent: E): PartialFunction[Throwable, Option[Long]] = {
-    case ex: Throwable =>
-      exceptionHandler.handleEventException(ex, sequence, forEvent)
-  }
-
+  @inline
   private def nextSequence(l: Long) = {
-    managing (alert){
-      sequenceBarrier.waitFor(l)
+    try {
+      Some(sequenceBarrier.waitFor(l))
+    } catch  {
+      case ex: AlertException if (!running.get())=> None
+      case ex: InterruptedException => None
     }
   }
 
+  @inline
   private def handlingEvent(sequence: Long, asLast: Boolean): Option[Long] = {
     val event = ringBuffer.get(sequence)
-    managing(alert orElse trap(sequence, event)) {
+    try {
       eventHandler.onEvent(event, sequence, asLast)
-      sequence
+      Some(sequence)
+    } catch {
+      case ex: AlertException if (!running.get())=>
+        println("Stopping...")
+        None
+      case ex: Throwable =>
+        println("Caught exception...")
+        exceptionHandler.handleEventException(ex, sequence, event)
+
     }
   }
 
   @tailrec private def handleEvents(index: Long, availableSequence: Long): Option[Long]  = {
-    handlingEvent(index, index == availableSequence ) match {
-      case Some(step) if step == availableSequence => Some(step)
-      case Some(step) => handleEvents(step + 1L, availableSequence)
-      case _ => {
-        println("resend none for sequence: " + index)
-        None
-      }
+    val last = index == availableSequence
+    handlingEvent(index, last) match {
+      case lastIndex if last  => lastIndex
+      case Some(_) => handleEvents(index + 1L, availableSequence)
+      case _ => None
     }
   }
 
+  @inline
   def processEvents(fromIndex: Long) = {
     for {
       availableSequence <- nextSequence(fromIndex);

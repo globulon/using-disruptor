@@ -1,19 +1,22 @@
 package com.promindis.disruptor.configurations
 
 import com.promindis.disruptor.adapters.TimeMeasurement._
-import com.promindis.disruptor.adapters.Processor
 import com.promindis.disruptor.adapters.ProcessorLifeCycle._
+import com.promindis.disruptor.adapters.{ProcessorFactory, Processor}
+
 
 final case class Configuration(
-  ringBufferSize: Int = 1024 * 1024 ,
-  iterations: Long = 1000L * 1000L * 48L,
+  ringBufferSize: Int = 1024 * 64 ,
+  iterations: Long = 1000L * 1000L * 64L,
   runs: Int  = 8
+
 )
 
 trait Scenario {
 
-  final def playWith[Proc](processors: Seq[Proc])(bench: => Unit)
-                          (implicit config: Configuration, c: Proc => Processor) = {
+  implicit val factory = ProcessorFactory()
+
+  final def playWith(processors: Seq[Processor])(bench: => Unit) (implicit config: Configuration) = {
     sampling {
       executing(processors:_*) {
         bench
@@ -23,15 +26,15 @@ trait Scenario {
     }
   }
 
-  def challenge(implicit configuration: Configuration): Long
+  def challenge(implicit configuration: Configuration, factory: ProcessorFactory): Long
 
-  def run(implicit config: Configuration): Seq[Long] =  {
+  def run(implicit config: Configuration, factory: ProcessorFactory): Seq[Long] =  {
     val config = Configuration()
-    for (_ <- 1 to config.runs) yield challenge(config)
+    for (_ <- 1 to config.runs) yield challenge(config, factory)
   }
 
   def main(args: Array[String]) {
-    val result = run(Configuration()).foldLeft(0L) { _ + _ }
+    val result = run(Configuration(), factory).foldLeft(0L) { _ + _ }
     println("Nb Op/s: " + result / Configuration().runs)
   }
 }

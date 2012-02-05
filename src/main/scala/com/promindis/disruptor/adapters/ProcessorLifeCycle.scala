@@ -1,25 +1,16 @@
 package com.promindis.disruptor.adapters
 
-import com.lmax.disruptor.BatchEventProcessor
 import java.util.concurrent.Executors._
+import com.lmax.disruptor.Sequence
 
-trait Processor extends Runnable{def halt()}
+trait Processor extends Runnable{
+  def halt()
+  def getSequence: Sequence
+}
 
 object ProcessorLifeCycle {
 
-
-  implicit def batchToProcessor[T](processor: BatchEventProcessor[T]) = new Processor {
-    def run() {
-      processor.run()
-    }
-
-    def halt() {
-      processor.halt()
-    }
-
-  }
-
-  def executing[Proc <% Processor](processors: Proc*)(block: => Unit) {
+  def executing(processors: Processor*)(block: => Unit) {
     val executor = newFixedThreadPool(processors.length)
     processors.foreach {executor.execute(_)}
     try {

@@ -7,12 +7,4 @@ object Utils {
       def |[T](b: => T) = if (p) a else b
     }
   }
-
-  def managing(trap: => PartialFunction[Throwable, Option[Long]])(f: => Long): Option[Long] = {
-    try {
-      Some(f)
-    } catch trap
-  }
-
-
 }

@@ -3,11 +3,11 @@ package com.promindis.disruptor.port
 import org.specs2.Specification
 import com.promindis.disruptor.adapters.RingBufferFactory._
 import com.promindis.disruptor.port.EventModuleStub._
-import com.promindis.disruptor.adapters.Shooter
 import com.promindis.disruptor.configurations.{Scenario, Configuration}
 import scala.actors.Actor
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 import TimeUnit._
+import com.promindis.disruptor.adapters.{ProcessorFactory, Shooter}
 
 final class BatchEventProcessorSpecification extends Specification with Scenario{ def is =
   "Specification to check the 'BatchEventProcessor' behavior"           ^
@@ -63,7 +63,7 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
       .and(eventHandler.wasStopped)
         .and(handledEvents should (beEqualTo(failureIndex)))
           .and(receivedEvents should (beEqualTo(handledEvents + 1L)))
- }
+}
 
   def e3(implicit configuration: Configuration) = {
     val eventHandler = EventHandlerLifeCycleAware[ValueEvent](new CountDownLatch(1), configuration.iterations, fail = true)
@@ -77,5 +77,6 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
       .and(receivedEvents should (beEqualTo(iterations)))
   }
 
-  override def challenge(implicit configuration: Configuration) = 0L
+
+  def challenge(implicit configuration: Configuration, factory: ProcessorFactory) = 0
 }

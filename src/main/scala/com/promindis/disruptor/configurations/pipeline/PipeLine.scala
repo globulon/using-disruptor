@@ -5,20 +5,20 @@ import java.util.concurrent.CountDownLatch
 
 import com.promindis.disruptor.adapters.EventModule.{Handler, ValueEvent, ValueEventFactory}
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
-import com.promindis.disruptor.adapters.{Builder, Shooter, EventModule}
+import com.promindis.disruptor.adapters.{ProcessorFactory, Builder, Shooter, EventModule}
 import Builder._
-import com.promindis.disruptor.adapters.ProcessorLifeCycle._
+import com.promindis.disruptor.port.EventHandler
 
-object PipeLineWithGenuineProcessor extends Scenario{
+object PipeLine extends Scenario{
 
-  def challenge(implicit config: Configuration) = {
+  def challenge(implicit config: Configuration, factory: ProcessorFactory) = {
     val rb = ringBuffer(ValueEventFactory,size = config.ringBufferSize);
     val countDownLatch = new CountDownLatch(1)
 
     val chain = for {
-      _ <- pipe[ValueEvent](Handler("C1"), rb)
-      _ <- pipe[ValueEvent](Handler("C2"), rb)
-      _ <- pipe[ValueEvent](Handler("C3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
+      _ <- pipe(Handler("C1"), rb)
+      _ <- pipe(Handler("C2"), rb)
+      _ <- pipe(Handler("C3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
     } yield ()
 
     val consumers = chain(List())._2

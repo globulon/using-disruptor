@@ -2,10 +2,11 @@ package com.promindis.disruptor.adapters
 
 import com.lmax.disruptor.RingBuffer
 import actors.Actor
+import actors.scheduler.DaemonScheduler
 
 class Shooter[T](numberOfShoot: Long, val ringBuffer: RingBuffer[T], val eventStrategy: T => T) extends Actor {
   self =>
-
+  override def scheduler = DaemonScheduler
   implicit def adapted[T](ringBuffer: RingBuffer[T]) = new {
 
     def shoot(update: T => T) {

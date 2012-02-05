@@ -2,19 +2,20 @@ package com.promindis.disruptor.configurations.diamond
 
 import com.promindis.disruptor.adapters.EventModule._
 import java.util.concurrent.CountDownLatch
-import com.lmax.disruptor._
+//import com.lmax.disruptor.EventHandler
+import com.lmax.disruptor.YieldingWaitStrategy
+
 import com.promindis.disruptor.adapters.RingBufferFactory._
 import com.promindis.disruptor.configurations.{Configuration, Scenario}
 import com.promindis.disruptor.adapters.Builder._
-import com.promindis.disruptor.adapters.{EventModule, Shooter}
-import com.promindis.disruptor.adapters.ProcessorLifeCycle._
+import com.promindis.disruptor.adapters.{ProcessorFactory, EventModule, Shooter}
 
 /**
  * Reproduces LMAX diamond configuration
  */
-object DiamondWihtGenuineProcessor extends Scenario {
+object Diamond extends Scenario {
 
-  def challenge(implicit config: Configuration): Long = {
+  def challenge(implicit config: Configuration, factory: ProcessorFactory): Long = {
 
     val rb = ringBuffer(ValueEventFactory, config.ringBufferSize, new YieldingWaitStrategy());
 
