@@ -19,10 +19,11 @@ final class EventHandlerLifeCycleAware[T]
   var handledEvents = 0
   var receivedEvents = 0
 
-  def onEvent(event: T, sequence: Long, endOfBatch: Boolean)  {
+  def onEvent(event: T, sequence: Long, endOfBatch: Boolean)  = {
     receivedEvents += 1
     if (sequence == failureIndex) throw new RuntimeException()
     handledEvents += 1
+    Some(sequence)
   }
 
   def started() { wasStarted = true}

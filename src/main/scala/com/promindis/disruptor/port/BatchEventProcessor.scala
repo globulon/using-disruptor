@@ -36,15 +36,10 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
     val event = ringBuffer.get(sequence)
     try {
       eventHandler.onEvent(event, sequence, asLast)
-      Some(sequence)
     } catch {
-      case ex: AlertException if (!running.get())=>
-        println("Stopping...")
-        None
       case ex: Throwable =>
         println("Caught exception...")
         exceptionHandler.handleEventException(ex, sequence, event)
-
     }
   }
 

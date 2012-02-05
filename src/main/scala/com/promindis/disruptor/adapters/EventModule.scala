@@ -33,12 +33,13 @@ object EventModule {
   class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent]{
     var counter = 0L
 
-    def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) {
+    override def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) = {
       counter += 1L
       if (counter == expectedShoot) {
         for (l <- latch)
           l.countDown()
       }
+      Some(sequence)
     }
 
     override def toString = "[" + name   + ": counter => " + counter  + "]"

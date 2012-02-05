@@ -24,15 +24,15 @@ object EventModuleStub {
     def newInstance(): ValueEvent = ValueEvent()
   }
 
-  case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends com.promindis.disruptor.port.EventHandler[ValueEvent]{
+  case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent]{
     var counter = 0L
 
-    def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) {
+    override  def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) = {
       counter += 1L
-      //      println(counter)
       for (l <- latch if (counter == expectedShoot) ) {
         l.countDown()
       }
+      Some(sequence)
     }
 
     override def toString = "[" + name   + ": counter => " + counter  + "]"

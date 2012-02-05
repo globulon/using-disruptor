@@ -6,7 +6,7 @@ import com.promindis.disruptor.adapters.{ProcessorFactory, Processor}
 
 
 final case class Configuration(
-  ringBufferSize: Int = 1024 * 64 ,
+  ringBufferSize: Int = 1024 * 512 ,
   iterations: Long = 1000L * 1000L * 64L,
   runs: Int  = 8
 
@@ -34,6 +34,7 @@ trait Scenario {
   }
 
   def main(args: Array[String]) {
+    Thread.sleep(8000)
     val result = run(Configuration(), factory).foldLeft(0L) { _ + _ }
     println("Nb Op/s: " + result / Configuration().runs)
   }
