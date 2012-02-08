@@ -1,16 +1,16 @@
-package com.promindis.disruptor.port
+package com.promindis.disruptor.genuine
 
 import org.specs2.mutable.Specification
-import com.lmax.disruptor._
+import com.lmax.disruptor.{SingleThreadedClaimStrategy, YieldingWaitStrategy, Sequencer, Sequence}
 
 /**
  * Date: 08/02/12
  * Time: 10:06
  */
-final class SequencerTest extends Specification{
+final class SequencerTest extends Specification {
 
   def sequencer() = {
-    val sequencer = new Sequencer(new SingleThreadedClaimStrategy(128),new YieldingWaitStrategy())
+    val sequencer = new Sequencer(new SingleThreadedClaimStrategy(128), new YieldingWaitStrategy())
     sequencer.setGatingSequences(sequence)
     sequencer
   }
@@ -22,13 +22,13 @@ final class SequencerTest extends Specification{
   }
 
   "Initialized Sequencer" should {
-    "should have same buffer size as claim strategy" in {
+    "have same buffer size as claim strategy" in {
       sequencer().getBufferSize.shouldEqual(128)
     }
 
     "increment sequence number " in {
       val s = sequencer()
-      s next() shouldEqual(0) and(s next() shouldEqual(1))
+      s next() shouldEqual (0) and (s next() shouldEqual (1))
     }
   }
 
@@ -46,6 +46,7 @@ final class SequencerTest extends Specification{
     "produce new instance " in {
       val s = sequencer()
       s.newBarrier(new Sequence()).getCursor.shouldEqual(s.getCursor)
+
     }
   }
 
