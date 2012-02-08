@@ -20,7 +20,7 @@ object Resolvers {
 
 
 object SourceDependencies {
-  val disruptorVersion = "2.7.1"
+  val disruptorVersion = "2.8"
   val disruptorDependencies =  "com.googlecode.disruptor" % "disruptor" % disruptorVersion
 }
 

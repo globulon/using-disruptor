@@ -109,19 +109,19 @@ object BatchEventProcessor {
   def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new BatchEventProcessor[T]{
       type Handler = EventHandler[T]
-      val eventHandler = handler
-      val ringBuffer = rb
-      val sequenceBarrier = sb
-      val exceptionHandler = exHandler
+      lazy val eventHandler = handler
+      lazy val ringBuffer = rb
+      lazy val sequenceBarrier = sb
+      lazy val exceptionHandler = exHandler
     }
 
   def withLifeCycle[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: LifeCycleAware[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new MonitoredBatchEventProcessor[T]{
       type Handler = LifeCycleAware[T]
-      val eventHandler = handler
-      val ringBuffer = rb
-      val sequenceBarrier = sb
-      val exceptionHandler = exHandler
+      lazy val eventHandler = handler
+      lazy val ringBuffer = rb
+      lazy val sequenceBarrier = sb
+      lazy val exceptionHandler = exHandler
     }
 
 }
