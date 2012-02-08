@@ -8,14 +8,14 @@ import java.util.concurrent.atomic.AtomicLong
  * @todo Padding will require sampling on that class size
  */
 
-case class Sequence(updater: AtomicLong) {
+case class RSequence(updater: AtomicLong) {
 
   def updated(newValue: Long) = {
     set(newValue)
     this
   }
 
-  private def set(value: Long) {updater.lazySet(value)}
+  def set(value: Long) {updater.lazySet(value)}
 
   def get() = updater.get()
 
@@ -23,7 +23,7 @@ case class Sequence(updater: AtomicLong) {
 
 }
 
-object Sequence {
+object RSequence {
 
-  def apply(value: Long = INITIAL_VALUE) = new Sequence(new AtomicLong(value))
+  def apply(value: Long = INITIAL_VALUE) = new RSequence(new AtomicLong(value))
 }

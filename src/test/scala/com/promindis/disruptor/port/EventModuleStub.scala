@@ -1,19 +1,18 @@
 package com.promindis.disruptor.port
 
-import com.lmax.disruptor.util.PaddedLong
 import com.lmax.disruptor.EventFactory
 import java.util.concurrent.CountDownLatch
 
 object EventModuleStub {
 
   class ValueEvent() {
-    val value = new PaddedLong()
+    val paddedValue = PaddedLong()
 
     def setValue(newValue: Long) {
-      value.set(newValue)
+      paddedValue.value = newValue
     }
 
-    def getValue = value.get()
+    def getValue = paddedValue
   }
 
   object ValueEvent {

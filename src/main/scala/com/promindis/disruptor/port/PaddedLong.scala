@@ -17,3 +17,8 @@ final class PaddedLong(var value: Long) extends Mutable{
 
   def sumPaddingToPreventOptimisation() = p1 + p2 + p3 + p4 + p5 + p6 + p7
 }
+
+object  PaddedLong {
+  def apply(value: Long = 0L) = new PaddedLong(value)
+}
+
