@@ -2,7 +2,7 @@ package com.promindis.disruptor.port
 
 import org.specs2.Specification
 import com.promindis.disruptor.adapters.RingBufferFactory._
-import com.promindis.disruptor.port.EventModuleStub._
+import com.promindis.disruptor.EventModuleStub._
 import com.promindis.disruptor.configurations.{Scenario, Configuration}
 import scala.actors.Actor
 import java.util.concurrent.{TimeUnit, CountDownLatch}
@@ -30,7 +30,7 @@ final class BatchEventProcessorSpecification extends Specification with Scenario
     val processor = BatchEventProcessor.withLifeCycle(rb, rb.newBarrier(), handler, exceptionHandler);
     rb.setGatingSequences(processor.getSequence)
 
-    val shooter = Shooter(configuration.iterations, rb, EventModuleStub.fillEvent)
+    val shooter = Shooter(configuration.iterations, rb, fillEvent)
     (processor, shooter)
   }
 
