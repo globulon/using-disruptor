@@ -1,10 +1,10 @@
-package com.promindis.disruptor.genuine
+package com.lmax.disruptor
 
 import org.specs2.mutable.Specification
 import com.promindis.disruptor.EventModuleStub.ValueEventFactory
-import com.lmax.disruptor.{SingleThreadedClaimStrategy, RingBuffer, YieldingWaitStrategy, Sequence => RSequence}
+import com.lmax.disruptor.{Sequence => RSequence}
 import com.promindis.disruptor.Tools._
-import java.util.concurrent.{TimeUnit, Callable}
+import java.util.concurrent.TimeUnit
 import TimeUnit._
 
 /**
@@ -12,7 +12,7 @@ import TimeUnit._
  * Time: 13:06
  */
 
-final class YieldingWaitStrategyTest extends Specification{
+final class YieldingWaitStrategyTest extends Specification {
 
   def rb = new RingBuffer(ValueEventFactory, new SingleThreadedClaimStrategy(128), new YieldingWaitStrategy())
 
@@ -25,7 +25,7 @@ final class YieldingWaitStrategyTest extends Specification{
 
     "wait until cursor value reach expected sequence" in {
       val cursor = new RSequence()
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, cursor, Array(), rb.newBarrier())
       }
       cursor.set(8)
@@ -33,7 +33,7 @@ final class YieldingWaitStrategyTest extends Specification{
     }
 
     "wait until all dependant sequences values have progressed " in {
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, new RSequence(), Array(sequenceOne, sequenceTwo), rb.newBarrier())
       }
 
@@ -48,7 +48,7 @@ final class YieldingWaitStrategyTest extends Specification{
 
     "return cursor value when found before ellapsed time" in {
       val cursor = new RSequence()
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, cursor, Array(), rb.newBarrier(), 10L, SECONDS)
       }
       cursor.set(8)
@@ -56,7 +56,7 @@ final class YieldingWaitStrategyTest extends Specification{
     }
 
     "return minmum of dependent sequences values when found" in {
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, new RSequence(), Array(sequenceOne, sequenceTwo), rb.newBarrier(), 10L, SECONDS)
       }
 
@@ -67,14 +67,14 @@ final class YieldingWaitStrategyTest extends Specification{
 
     "return cursor value after timeout elapsed" in {
       val cursor = new RSequence(4L)
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, cursor, Array(), rb.newBarrier(), 1L, SECONDS)
       }
       result.get(2, SECONDS).should(beEqualTo(4L))
     }
 
     "return minimum value in sequences after timeout elapsed" in {
-      val result = submitFragment{
+      val result = submitFragment {
         new YieldingWaitStrategy().waitFor(5, new RSequence(), Array(sequenceOne, sequenceTwo), rb.newBarrier(), 1L, SECONDS)
       }
       result.get(2, SECONDS).should(beEqualTo(3L))

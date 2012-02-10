@@ -1,6 +1,5 @@
 package com.promindis.disruptor.port
 
-import Sequences._
 import annotation.tailrec
 import java.util.concurrent.locks.LockSupport
 import Long._
@@ -11,7 +10,6 @@ import Long._
  */
 
 case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
-
 
   val minGatingSequence = RSequence()
   val claimSequence = RSequence()

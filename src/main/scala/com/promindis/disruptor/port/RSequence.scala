@@ -21,6 +21,7 @@ case class RSequence(updater: AtomicLong) {
 
   def compareAndSet(expectedValue: Long, toValue: Long) = updater.compareAndSet(expectedValue, toValue)
 
+
 }
 
 object RSequence {

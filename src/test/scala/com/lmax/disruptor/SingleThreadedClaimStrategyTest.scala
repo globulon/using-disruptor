@@ -1,7 +1,6 @@
-package com.promindis.disruptor.genuine
+package com.lmax.disruptor
 
 import org.specs2.mutable.Specification
-import com.lmax.disruptor.{SingleThreadedClaimStrategy, Sequence}
 
 /**
  * Date: 08/02/12
@@ -63,7 +62,7 @@ final class SingleThreadedClaimStrategyTest() extends Specification {
     "increment value while possible " in {
       val sequences = Array(new Sequence(3L), new Sequence(5L))
       val aClaim = claim
-      Range(1,133).foreach( _ => aClaim.incrementAndGet(sequences))
+      Range(1, 133).foreach(_ => aClaim.incrementAndGet(sequences))
       aClaim.hasAvailableCapacity(1, sequences).isFailure
     }
 

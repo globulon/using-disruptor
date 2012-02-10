@@ -1,7 +1,6 @@
-package com.promindis.disruptor.genuine
+package com.lmax.disruptor
 
 import org.specs2.mutable.Specification
-import com.lmax.disruptor.{SingleThreadedClaimStrategy, YieldingWaitStrategy, Sequencer, Sequence}
 
 /**
  * Date: 08/02/12

@@ -1,4 +1,4 @@
-package com.promindis.disruptor.genuine
+package com.lmax.disruptor
 
 import org.specs2.mutable.Specification
 import com.lmax.disruptor.{Sequence => PaddedSequence}
