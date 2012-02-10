@@ -9,9 +9,9 @@ import actors.threadpool.TimeUnit
  */
 
 trait WaitStrategy {
-  def waitFor(sequence: Long, cursor: RSequence, barrier: SequenceBarrier , dependents: RSequence*): Option[Long]
+  def waitFor(sequence: Long, cursor: RSequence, barrier: SequencesBarrier , dependents: RSequence*): Option[Long]
 
-  def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequenceBarrier , dependents: RSequence*): Option[Long]
+  def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequencesBarrier , dependents: RSequence*): Option[Long]
 
 //  def signalAllWhenBlocking: Unit
 }

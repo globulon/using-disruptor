@@ -7,7 +7,7 @@ import actors.threadpool.TimeUnit
  * Time: 17:14
  */
 
-trait SequenceBarrier {
+trait SequencesBarrier {
   private var alertOn = false
 
   def alerted = alertOn
@@ -21,11 +21,11 @@ trait SequenceBarrier {
   def waitFor(duration: Long, units: TimeUnit, sequence: Long) : Option[Long]
 }
 
-case class ProcessingSequenceBarrier (
+case class ProcessingSequencesBarrier (
                                       waitStrategy: WaitStrategy,
                                       cursor: RSequence,
                                       dependentSequences: RSequence*
-) extends SequenceBarrier {
+) extends SequencesBarrier {
 
   override def waitFor(sequence: Long): Option[Long] = {
     if (alerted) None

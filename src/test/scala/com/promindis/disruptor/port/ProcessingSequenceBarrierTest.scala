@@ -13,20 +13,20 @@ final class ProcessingSequenceBarrierTest extends Specification {
 
   "New ProcessingSequenceBarrier " should {
     "not be alerted" in {
-      ProcessingSequenceBarrier(FakeWaitStrategy(), RSequence()).alerted.should(beFalse)
+      ProcessingSequencesBarrier(FakeWaitStrategy(), RSequence()).alerted.should(beFalse)
     }
   }
 
   "Alert" should {
     "Update alert flag " in {
-      val barrier = ProcessingSequenceBarrier(FakeWaitStrategy(), RSequence())
+      val barrier = ProcessingSequencesBarrier(FakeWaitStrategy(), RSequence())
       barrier.alerted.should(beFalse)
       barrier.doAlert()
       barrier.alerted.should(beTrue)
     }
 
     "be cleared with clearAlert command" in {
-      val barrier = new ProcessingSequenceBarrier(FakeWaitStrategy(), RSequence())
+      val barrier = new ProcessingSequencesBarrier(FakeWaitStrategy(), RSequence())
       barrier.alerted.should(beFalse)
       barrier.doAlert()
       barrier.alerted.should(beTrue)
@@ -37,7 +37,7 @@ final class ProcessingSequenceBarrierTest extends Specification {
 
   "check alert " should {
     "throw exception on alert" in {
-      val barrier = ProcessingSequenceBarrier(FakeWaitStrategy(), RSequence())
+      val barrier = ProcessingSequencesBarrier(FakeWaitStrategy(), RSequence())
       barrier.doAlert()
       barrier.alerted.should(beTrue)
     }
@@ -47,7 +47,7 @@ final class ProcessingSequenceBarrierTest extends Specification {
     "use wait strategy to wait" in {
       val waitStrategy = FakeWaitStrategy()
       val cursor = RSequence()
-      val barrier = new ProcessingSequenceBarrier(waitStrategy, cursor)
+      val barrier = new ProcessingSequencesBarrier(waitStrategy, cursor)
       barrier.waitFor(5L)
       waitStrategy.waitedSequence.should(beEqualTo(5L))
       waitStrategy.inputCursor.should(beEqualTo(cursor))
@@ -55,7 +55,7 @@ final class ProcessingSequenceBarrierTest extends Specification {
 
     "if alerted should throw exception" in {
       val waitStrategy = FakeWaitStrategy()
-      val barrier = new ProcessingSequenceBarrier(waitStrategy, RSequence())
+      val barrier = new ProcessingSequencesBarrier(waitStrategy, RSequence())
       barrier.doAlert()
       barrier.waitFor(5L).should(beNone)
     }
@@ -63,7 +63,7 @@ final class ProcessingSequenceBarrierTest extends Specification {
     "use wait strategy to wait with timeout" in {
       val waitStrategy = FakeWaitStrategy()
       val cursor = RSequence()
-      val barrier = ProcessingSequenceBarrier(waitStrategy, cursor)
+      val barrier = ProcessingSequencesBarrier(waitStrategy, cursor)
       barrier.waitFor(2, SECONDS, 5L)
       waitStrategy.waitedSequence.should(beEqualTo(5L))
       waitStrategy.inputCursor.should(beEqualTo(cursor))
@@ -71,7 +71,7 @@ final class ProcessingSequenceBarrierTest extends Specification {
 
     "if alerted should throw exception even with timeout" in {
       val waitStrategy = FakeWaitStrategy()
-      val barrier = ProcessingSequenceBarrier(waitStrategy, RSequence())
+      val barrier = ProcessingSequencesBarrier(waitStrategy, RSequence())
       barrier.doAlert()
       barrier.waitFor(5L).should(beNone)
     }

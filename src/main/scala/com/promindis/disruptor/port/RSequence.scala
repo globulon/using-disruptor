@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 
 case class RSequence(updater: AtomicLong) {
+  protected[RSequence] var test: Long = 0
 
   def updated(newValue: Long) = {
     set(newValue)
