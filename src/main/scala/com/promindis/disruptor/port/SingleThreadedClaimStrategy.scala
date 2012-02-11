@@ -3,7 +3,7 @@ package com.promindis.disruptor.port
 import annotation.tailrec
 import java.util.concurrent.locks.LockSupport
 import Long._
-
+import Utils._
 /**
  * Date: 08/02/12
  * Time: 15:58
@@ -24,13 +24,6 @@ case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
     claimSequence.set(newSequence)
     waitForAvailableSlotAt(dependentSequences: _*)
     newSequence
-  }
-
-
-  @inline def smallestSlotIn(sequences: Seq[RSequence]): Long = {
-    sequences.foldLeft(MaxValue) {
-      (cur, item) =>
-        if (item.get() < cur) item.get() else cur}
   }
 
   def waitForAvailableSlotAt(sequences: RSequence*) {

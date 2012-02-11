@@ -21,10 +21,9 @@ trait SequencesBarrier {
   def waitFor(duration: Long, units: TimeUnit, sequence: Long) : Option[Long]
 }
 
-case class ProcessingSequencesBarrier (
-                                      waitStrategy: WaitStrategy,
-                                      cursor: RSequence,
-                                      dependentSequences: RSequence*
+case class ProcessingSequencesBarrier (waitStrategy: WaitStrategy,
+                                       cursor: RSequence,
+                                       dependentSequences: RSequence*
 ) extends SequencesBarrier {
 
   override def waitFor(sequence: Long): Option[Long] = {
