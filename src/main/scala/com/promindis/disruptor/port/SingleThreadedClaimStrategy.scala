@@ -2,7 +2,6 @@ package com.promindis.disruptor.port
 
 import annotation.tailrec
 import java.util.concurrent.locks.LockSupport
-import Long._
 import Utils._
 /**
  * Date: 08/02/12
@@ -16,10 +15,10 @@ case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
 
   @inline def sequence: Long = claimSequence.get()
 
-  def incrementAndGet(dependentSequences: RSequence*):Long =
+  override def incrementAndGet(dependentSequences: RSequence*):Long =
     incrementAndGet(1L, dependentSequences: _*)
 
-  def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long = {
+  @inline def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long = {
     val newSequence = sequence + delta
     claimSequence.set(newSequence)
     waitForAvailableSlotAt(dependentSequences: _*)
@@ -48,10 +47,10 @@ case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
     value
   }
 
-  def hasAvailableCapacity(expected: Int, sequences: RSequence*): Boolean = {
+  override def hasAvailableCapacity(expected: Long, sequences: RSequence*): Boolean = {
     val wrapSequence = sequence + 1L - bufferSize
     if (wrapSequence > minGatingSequence.get())
-                           (updated(minGatingSequence, smallestSlotIn(sequences)) > wrapSequence)
+      (updated(minGatingSequence, smallestSlotIn(sequences)) > wrapSequence)
     else
     true
   }

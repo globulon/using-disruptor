@@ -20,7 +20,7 @@ final class YieldingWaitStrategy() extends WaitStrategy {
 
   def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequencesBarrier, dependents: RSequence*) = {
     for {
-      result <- waitForSequence(COUNTER, strategyFor(sequence, cursor, dependents), barrier.alerted, TimeSlice(interval = sourceUnit.toMillis(timeout)))
+      result <- waitForSequence(COUNTER, strategyFor(sequence, cursor, dependents), barrier.alerted, VanishingTime(interval = sourceUnit.toMillis(timeout)))
     } yield result
   }
 
@@ -30,11 +30,11 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     } yield result
   }
 
-  @tailrec def waitForSequence(counter: Int, keepWaiting: Strategy, alerted: => Boolean, time: TimeSlice): Option[Long] = {
+  @tailrec def waitForSequence(counter: Int, keepWaiting: Strategy, alerted: => Boolean, time: VanishingTime): Option[Long] = {
     counter match {
       case _ if (time.overdue()) => keepWaiting.result()
       case _ if (alerted) => None
-      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, alerted, time.slice())
+      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, alerted, time.reduce())
       case 0 =>
         Thread.`yield`()
         keepWaiting.result()

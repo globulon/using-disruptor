@@ -10,9 +10,9 @@ object Utils {
 
   import System.currentTimeMillis
 
-  case class TimeSlice(start: Long = currentTimeMillis(), current: Long = currentTimeMillis(), interval: Long) {
+  case class VanishingTime(start: Long = currentTimeMillis(), current: Long = currentTimeMillis(), interval: Long) {
 
-    def slice() = copy(current = currentTimeMillis())
+    def reduce() = copy(current = currentTimeMillis())
 
     def overdue() = (current - start) > interval
 

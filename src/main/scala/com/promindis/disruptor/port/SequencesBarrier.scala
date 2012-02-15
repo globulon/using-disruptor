@@ -10,6 +10,8 @@ import actors.threadpool.TimeUnit
 trait SequencesBarrier {
   private var alertOn = false
 
+  def cursorValue: Long
+
   def alerted = alertOn
 
   def doAlert() {alertOn = true}
@@ -35,4 +37,6 @@ case class ProcessingSequencesBarrier (waitStrategy: WaitStrategy,
     if (alerted) None
     else waitStrategy.waitFor(duration, units, sequence, cursor, this,  dependentSequences: _*)
   }
+
+  def cursorValue = cursor.get()
 }

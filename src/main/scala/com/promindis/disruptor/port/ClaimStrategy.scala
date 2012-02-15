@@ -6,5 +6,9 @@ package com.promindis.disruptor.port
  */
 
 trait ClaimStrategy {
+  def incrementAndGet(seq: RSequence*): Long
 
+  def bufferSize: Long
+
+  def hasAvailableCapacity(expected: Long, sequences: RSequence*): Boolean
 }
