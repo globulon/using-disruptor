@@ -114,97 +114,100 @@ final class SequencerTest extends Specification {
     }
 
   }
-//
-//  "next with batch descriptor " should {
-//    "update batch descriptor content when there is available data" in {
-//      sequencer().withGating(sequence(5L)).next(new BatchDescriptor(4)).getEnd.should(beEqualTo(3))
-//    }
-//
-//    "update batch descriptor content after data has been filled up" in {
-//      val sequence = new Sequence(5L)
-//      val s = sequencer().withGating(sequence)
-//      s.next(new BatchDescriptor(16)).getEnd.should(beEqualTo(15))
-//
-//      val future = submitFragment {
-//        s.next(new BatchDescriptor(16))
-//      }
-//
-//      sequence.set(64)
-//      future.get(2L, SECONDS).getEnd.should(beEqualTo(31L))
-//
-//    }
-//  }
-//
-//  "next with batch descriptor and timout" should {
-//    "update batch descriptor content when there is available data" in {
-//      sequencer().withGating(sequence(5L)).next(new BatchDescriptor(4), 1L, SECONDS).getEnd.should(beEqualTo(3))
-//    }
-//
-//    "update batch descriptor content after data has been filled up" in {
-//      val sequence = new Sequence(5L)
-//      val s = sequencer().withGating(sequence)
-//      s.next(new BatchDescriptor(16), 1L, SECONDS).getEnd.should(beEqualTo(15))
-//
-//      val future = submitFragment {
-//        s.next(new BatchDescriptor(16), 2L, SECONDS)
-//      }
-//
-//      sequence.set(64)
-//      future.get(2L, SECONDS).getEnd.should(beEqualTo(31L))
-//    }
-//
-//    "update batch descriptor content after data has been filled up" in {
-//      val sequence = new Sequence(5L)
-//      val s = sequencer().withGating(sequence)
-//      s.next(new BatchDescriptor(16), 1L, SECONDS).getEnd.should(beEqualTo(15))
-//
-//      val future = submitFragment {
-//        s.next(new BatchDescriptor(16), 2L, SECONDS)
-//      }
-//
-//      sequence.set(64)
-//      future.get(2L, SECONDS).getEnd.should(beEqualTo(31L))
-//    }
-//
-//    "should throw exception after timeout without gating sequences update" in {
-//      val sequence = new Sequence(5L)
-//      val s = sequencer().withGating(sequence)
-//      s.next(new BatchDescriptor(16), 1L, SECONDS).getEnd.should(beEqualTo(15))
-//
-//      val future = submitFragment {
-//        s.next(new BatchDescriptor(16), 2L, SECONDS)
-//      }
-//
-//      future.get(2L, SECONDS).should(throwA)
-//    }
-//
-//  }
-//
-//  "force publish " should {
-//    "update cursor " in {
-//      val s = sequencer()
-//      s.getCursor.should(beEqualTo(-1L))
-//      s.forcePublish(5L)
-//      s.getCursor.should(beEqualTo(5L))
-//
-//    }
-//  }
-//
-//  "publish" should {
-//    "update cursor value" in {
-//      val s = sequencer()
-//      s.getCursor.should(beEqualTo(-1L))
-//      s.publish(5L)
-//      s.getCursor.should(beEqualTo(5L))
-//    }
-//
-//    "update cursor value with batch end value" in {
-//      val s = sequencer()
-//      s.getCursor.should(beEqualTo(-1L))
-//      s.publish(new BatchDescriptor(16).withEnd(32L))
-//      s.getCursor.should(beEqualTo(32L))
-//    }
-//
-//  }
 
+  "next with batch descriptor " should {
+    "update batch descriptor content when there is available data" in {
+      sequencer.withGating(RSequence(5L))
+        .next(BatchDescriptor(4))
+          .get.end.should(beEqualTo(3))
+    }
+
+    "update batch descriptor content after data has been filled up" in {
+      val sequence = RSequence(5L)
+      val s = sequencer.withGating(sequence)
+
+      s.next(BatchDescriptor(16))
+        .get.end.should(beEqualTo(15))
+
+      val future = submitFragment{
+        s.next(new BatchDescriptor(16))
+      }
+
+      sequence.set(64)
+      future.get(2L, JTimeUnit.SECONDS)
+        .get.end.should(beEqualTo(31L))
+    }
+  }
+
+  "next with batch descriptor and timout" should {
+    "update batch descriptor content when there is available data" in {
+      sequencer.withGating(RSequence(5L))
+        .next(BatchDescriptor(4), 1L, SECONDS).get.end.should(beEqualTo(3))
+    }
+
+    "update batch descriptor content after data has been filled up" in {
+      val sequence = RSequence(5L)
+      val s = sequencer.withGating(sequence)
+      s.next(BatchDescriptor(16), 1L, SECONDS).get.end.should(beEqualTo(15))
+
+      val future = submitFragment {
+        s.next(new BatchDescriptor(16), 2L, SECONDS)
+      }
+
+      sequence.set(64)
+      future.get(2L, JTimeUnit.SECONDS).get.end.should(beEqualTo(31L))
+    }
+
+    "update batch descriptor content after data has been filled up" in {
+      val sequence = RSequence(5L)
+      val s = sequencer.withGating(sequence)
+      s.next(BatchDescriptor(16), 1L, SECONDS).get.end.should(beEqualTo(15))
+
+      val future = submitFragment {
+        s.next(BatchDescriptor(16), 2L, SECONDS)
+      }
+
+      sequence.set(64)
+      future.get(2L, JTimeUnit.SECONDS).get.end.should(beEqualTo(31L))
+    }
+
+
+    "should throw exception after timeout without gating sequences update" in {
+      val sequence = RSequence(5L)
+      val s = sequencer.withGating(sequence)
+      s.next(BatchDescriptor(16), 1L, SECONDS).get.end.should(beEqualTo(15))
+
+      val future = submitFragment {
+        s.next(BatchDescriptor(16), 1L, SECONDS)
+      }
+
+      future.get(2L, JTimeUnit.SECONDS).should(beNone)
+    }
+  }
+
+  "force publish " should {
+    "update cursor " in {
+      val s = sequencer
+      s.cursorValue.should(beEqualTo(-1L))
+      s.forcePublish(5L)
+      s.cursorValue.should(beEqualTo(5L))
+
+    }
+  }
+
+  "publish" should {
+    "update cursor value" in {
+      val s = sequencer.withGating(RSequence(5L))
+      s.cursorValue.should(beEqualTo(-1L))
+      s.publish(5L)
+      s.cursorValue.should(beEqualTo(5L))
+    }
+
+    "update cursor value with batch end value" in {
+      val s = sequencer.withGating(RSequence(5L))
+      s.cursorValue.should(beEqualTo(-1L))
+      s.publish(BatchDescriptor(16L).withEnd(32L))
+      s.cursorValue.should(beEqualTo(32L))
+    }
+  }
 }

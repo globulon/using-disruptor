@@ -68,6 +68,8 @@ final class YieldingWaitStrategy() extends WaitStrategy {
         def result() = Some(smallestSlotIn(dependencies))
       }
   }
+
+
 }
 
 object YieldingWaitStrategy {

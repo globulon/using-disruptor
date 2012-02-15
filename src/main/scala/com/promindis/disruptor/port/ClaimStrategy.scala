@@ -6,7 +6,13 @@ package com.promindis.disruptor.port
  */
 
 trait ClaimStrategy {
+  def serialisePublishing(sequence: Long, cursor: RSequence, batchSize: Long) {
+      cursor.set(sequence)
+  }
+
   def incrementAndGet(seq: RSequence*): Long
+
+  def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long
 
   def bufferSize: Long
 

@@ -18,7 +18,7 @@ case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
   override def incrementAndGet(dependentSequences: RSequence*):Long =
     incrementAndGet(1L, dependentSequences: _*)
 
-  @inline def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long = {
+  @inline override def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long = {
     val newSequence = sequence + delta
     claimSequence.set(newSequence)
     waitForAvailableSlotAt(dependentSequences: _*)
@@ -48,7 +48,7 @@ case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
   }
 
   override def hasAvailableCapacity(expected: Long, sequences: RSequence*): Boolean = {
-    val wrapSequence = sequence + 1L - bufferSize
+    val wrapSequence = sequence + expected - bufferSize
     if (wrapSequence > minGatingSequence.get())
       (updated(minGatingSequence, smallestSlotIn(sequences)) > wrapSequence)
     else

@@ -20,4 +20,6 @@ case class FakeWaitStrategy() extends WaitStrategy{
 
   def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequencesBarrier, dependents: RSequence*) =
     waitFor(sequence, cursor , barrier , dependents: _*)
+
+
 }
