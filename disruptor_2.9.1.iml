@@ -20,7 +20,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.9.1" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.specs2:specs2_2.9.1:1.7.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.specs2:specs2_2.9.1:1.8.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.specs2:specs2-scalaz-core_2.9.1:6.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.googlecode.disruptor:disruptor:2.8" level="project" />
   </component>

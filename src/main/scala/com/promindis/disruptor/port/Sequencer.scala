@@ -20,9 +20,14 @@ final class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitSt
 
   def cursorValue = cursor.get()
 
+  def safely[T](f: (Seq[RSequence])=> T): Option[T] = {
+    for {sequences <- gatingSequences} yield f(sequences)
+  }
+
   def next(): Option[Long] = {
-    for {sequences <- gatingSequences}
-    yield claimStrategy.incrementAndGet(sequences: _*)
+    safely { sequences  =>
+      claimStrategy.incrementAndGet(sequences: _*)
+    }
   }
 
   def next(timeout: Long, unit: TimeUnit): Option[Long] = {
@@ -34,18 +39,17 @@ final class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitSt
   }
 
   def next(descriptor: BatchDescriptor): Option[BatchDescriptor] = {
-    for {sequences <- gatingSequences}
-      yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
+    safely { sequences  =>
+      descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
+    }
   }
 
   def next(descriptor: BatchDescriptor, timeout: Long, unit: TimeUnit): Option[BatchDescriptor] = {
-    val result = (for {
+    for {
       sequences <- gatingSequences
       _ <- waitForAvailable(descriptor.size, timeout, unit, sequences: _*)
-    } yield claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
+    } yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
 
-    println("result" + result)
-    for {data <- result} yield descriptor.withEnd(data)
   }
 
   def withGating(sequences: RSequence*) = {
@@ -60,7 +64,6 @@ final class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitSt
   ProcessingSequencesBarrier(waitStrategy, cursor, sequences: _*)
 
   def waitForAvailable(value: Long, timeout: Long, unit: TimeUnit, sequences: RSequence*): Option[Long] = {
-    println("waitForAvailable " + value)
     @tailrec def loopWaiting(timeSlice: VanishingTime): Option[Long] = {
       println(claimStrategy.hasAvailableCapacity(value, sequences: _*))
       println(timeSlice)
@@ -73,6 +76,7 @@ final class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitSt
 
     loopWaiting(VanishingTime(interval = unit.toMillis(timeout)))
   }
+
 
   def forcePublish(value: Long) {
     cursor.set(value)
