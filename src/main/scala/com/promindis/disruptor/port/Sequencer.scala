@@ -10,7 +10,7 @@ import annotation.tailrec
  * @todo Option[Long] for next operation should be replaced by Either...
  */
 
-final class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy) {
+class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy) {
 
   private var gatingSequences: Option[Seq[RSequence]] = None
 

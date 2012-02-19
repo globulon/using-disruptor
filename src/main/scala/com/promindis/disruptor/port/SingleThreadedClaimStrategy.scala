@@ -8,7 +8,7 @@ import Utils._
  * Time: 15:58
  */
 
-case class SingleThreadedClaimStrategy(bufferSize: Long) extends ClaimStrategy {
+case class SingleThreadedClaimStrategy(bufferSize: Int) extends ClaimStrategy {
 
   val minGatingSequence = RSequence()
   val claimSequence = RSequence()

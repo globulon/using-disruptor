@@ -14,7 +14,7 @@ trait ClaimStrategy {
 
   def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long
 
-  def bufferSize: Long
+  def bufferSize: Int
 
   def hasAvailableCapacity(expected: Long, sequences: RSequence*): Boolean
 }
