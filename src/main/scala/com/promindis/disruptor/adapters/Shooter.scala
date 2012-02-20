@@ -4,7 +4,7 @@ import actors.Actor
 import actors.scheduler.DaemonScheduler
 import com.promindis.disruptor.port.RingBuffer
 
-class Shooter[T](numberOfShoot: Long, val ringBuffer: RingBufferOnSteroids[T], val eventStrategy: T => T) extends Actor {
+final class Shooter[T](val numberOfShoot: Long, val ringBuffer: RingBufferOnSteroids[T], val eventStrategy: T => T) extends Actor {
   self =>
   override def scheduler = DaemonScheduler
 
@@ -26,14 +26,10 @@ class Shooter[T](numberOfShoot: Long, val ringBuffer: RingBufferOnSteroids[T], v
  * @tparam T event type
  */
 final case class RingBufferOnSteroids[T](ringBuffer: RingBuffer[T]) {
-
   def shoot(update: T => T) {
-    for(
-      sequence <- ringBuffer.next();
-      event = ringBuffer.get(sequence)
-    ) {
-      update(event)
-      ringBuffer.publish(sequence);
+    for(sequence <- ringBuffer.next()) {
+      update(ringBuffer.get(sequence))
+      ringBuffer.publish(sequence)
     }
   }
 }
