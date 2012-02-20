@@ -8,8 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @todo Padding will require sampling on that class size
  */
 
-case class RSequence(updater: AtomicLong) {
-
+final case class RSequence(updater: AtomicLong) {
   def updated(newValue: Long) = {
     set(newValue)
     this
@@ -20,11 +19,8 @@ case class RSequence(updater: AtomicLong) {
   def get() = updater.get()
 
   def compareAndSet(expectedValue: Long, toValue: Long) = updater.compareAndSet(expectedValue, toValue)
-
-
 }
 
 object RSequence {
-
   def apply(value: Long = INITIAL_VALUE) = new RSequence(new AtomicLong(value))
 }
