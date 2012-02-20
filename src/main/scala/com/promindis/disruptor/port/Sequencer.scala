@@ -65,15 +65,12 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
 
   def waitForAvailable(value: Long, timeout: Long, unit: TimeUnit, sequences: RSequence*): Option[Long] = {
     @tailrec def loopWaiting(timeSlice: VanishingTime): Option[Long] = {
-      println(claimStrategy.hasAvailableCapacity(value, sequences: _*))
-      println(timeSlice)
       timeSlice match {
         case _ if claimStrategy.hasAvailableCapacity(value, sequences: _*) => Some(value)
         case _ if timeSlice.overdue() => None
         case _ => loopWaiting(timeSlice.reduce())
       }
     }
-
     loopWaiting(VanishingTime(interval = unit.toMillis(timeout)))
   }
 

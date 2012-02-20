@@ -38,7 +38,6 @@ trait BatchEventProcessor[T] extends Processor with EventProcessor {
       eventHandler.onEvent(event, sequence, asLast)
     } catch {
       case ex: Throwable =>
-        println("Caught exception...")
         exceptionHandler.handleEventException(ex, sequence, event)
     }
   }

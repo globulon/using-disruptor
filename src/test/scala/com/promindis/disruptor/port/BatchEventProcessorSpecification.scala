@@ -9,7 +9,7 @@ import java.util.concurrent.{TimeUnit, CountDownLatch}
 import TimeUnit._
 import com.promindis.disruptor.adapters.{ProcessorFactory, Shooter}
 
-final class BatchEventProcessorSpecification extends Specification with Scenario{ def is =
+class BatchEventProcessorSpecification extends Specification with Scenario{ def is =
   "Specification to check the 'BatchEventProcessor' behavior"           ^
                                                                         p^
     "In nominal scenario the BatchEventProcessor test handler should"   ^

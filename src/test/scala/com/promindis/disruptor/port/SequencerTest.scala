@@ -11,7 +11,7 @@ import java.util.concurrent.{TimeUnit => JTimeUnit}
  * Date: 08/02/12
  * Time: 10:06
  */
-final class SequencerTest extends Specification {
+class SequencerTest extends Specification {
 
 
   def sequencer: Sequencer = {
@@ -208,6 +208,7 @@ final class SequencerTest extends Specification {
       s.cursorValue.should(beEqualTo(-1L))
       s.publish(BatchDescriptor(16L).withEnd(32L))
       s.cursorValue.should(beEqualTo(32L))
+
     }
   }
 }
