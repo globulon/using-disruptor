@@ -1,8 +1,7 @@
-package com.promindis.disruptor
+package com.lmax.disruptor
 
-import com.lmax.disruptor.EventFactory
 import java.util.concurrent.CountDownLatch
-import port.{PaddedLong, EventHandler}
+import com.promindis.disruptor.port.PaddedLong
 
 object EventModuleStub {
 
@@ -20,14 +19,14 @@ object EventModuleStub {
     def apply() = new ValueEvent()
   }
 
-  object ValueEventFactory extends EventFactory[ValueEvent] {
+  object ValueEventFactory extends com.lmax.disruptor.EventFactory[ValueEvent] {
     def newInstance(): ValueEvent = ValueEvent()
   }
 
   case class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent] {
     var counter = 0L
 
-    override def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) = {
+    override def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean)  {
       counter += 1L
       for (l <- latch if (counter == expectedShoot)) {
         l.countDown()

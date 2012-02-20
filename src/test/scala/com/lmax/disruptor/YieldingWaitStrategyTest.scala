@@ -1,7 +1,7 @@
 package com.lmax.disruptor
 
 import org.specs2.mutable.Specification
-import com.promindis.disruptor.EventModuleStub.ValueEventFactory
+import EventModuleStub.ValueEventFactory
 import com.lmax.disruptor.{Sequence => RSequence}
 import com.promindis.disruptor.Tools._
 import java.util.concurrent.TimeUnit

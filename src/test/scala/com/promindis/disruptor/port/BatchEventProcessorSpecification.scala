@@ -2,7 +2,7 @@ package com.promindis.disruptor.port
 
 import org.specs2.Specification
 import com.promindis.disruptor.adapters.RingBufferFactory._
-import com.promindis.disruptor.EventModuleStub._
+import EventModuleStub._
 import com.promindis.disruptor.configurations.{Scenario, Configuration}
 import scala.actors.Actor
 import java.util.concurrent.{TimeUnit, CountDownLatch}
@@ -26,9 +26,9 @@ class BatchEventProcessorSpecification extends Specification with Scenario{ def 
   implicit val config = Configuration(ringBufferSize = 16, iterations = 64, runs = 1)
 
   def setupFor(handler: LifeCycleAware[ValueEvent], exceptionHandler: ExceptionHandler)(implicit configuration: Configuration) = {
-    val rb = ringBuffer(ValueEventFactory, size = configuration.ringBufferSize);
-    val processor = BatchEventProcessor.withLifeCycle(rb, rb.newBarrier(), handler, exceptionHandler);
-    rb.setGatingSequences(processor.getSequence)
+    val Some(rb) = ringBuffer(ValueEventFactory, size = configuration.ringBufferSize.toInt);
+    val processor = BatchEventProcessor.withLifeCycle(rb, rb.barrier, handler, exceptionHandler);
+    rb.withGating(processor.getSequence)
 
     val shooter = Shooter(configuration.iterations, rb, fillEvent)
     (processor, shooter)
@@ -76,7 +76,6 @@ class BatchEventProcessorSpecification extends Specification with Scenario{ def 
       .and(handledEvents should (beEqualTo(iterations - 1)))
       .and(receivedEvents should (beEqualTo(iterations)))
   }
-
 
   def challenge(implicit configuration: Configuration, factory: ProcessorFactory) = 0
 }

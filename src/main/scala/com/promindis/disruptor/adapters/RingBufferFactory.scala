@@ -1,7 +1,6 @@
 package com.promindis.disruptor.adapters
 
-import com.lmax.disruptor._
-
+import com.promindis.disruptor.port._
 
 /**
  * All the code required to create and use a ring buffer
@@ -15,14 +14,15 @@ object RingBufferFactory {
   val DEFAULT_SIZE: Int = 1024
 
 
-  def ringBuffer[T](eventFactory: EventFactory[T], size: Int = DEFAULT_SIZE, waitStrategy: WaitStrategy = new SleepingWaitStrategy()) =
-    new RingBuffer[T](eventFactory, new SingleThreadedClaimStrategy(size), waitStrategy);
+  def ringBuffer[T](eventFactory: EventFactory[T], size: Int = DEFAULT_SIZE, waitStrategy: WaitStrategy = new YieldingWaitStrategy()): Option[RingBuffer[T]] =
+    RingBuffer[T](eventFactory, new SingleThreadedClaimStrategy(size), waitStrategy);
 
   def create[T](withEventFactory: EventFactory[T], handler: EventHandler[T]) = {
-    val rb = ringBuffer[T](withEventFactory)
-    val barrier = rb.newBarrier();
-    val eventProcessor = new BatchEventProcessor[T](rb, barrier, handler)
-    rb.setGatingSequences(eventProcessor.getSequence);
-    (rb, eventProcessor)
+    for {
+      rb <- ringBuffer[T](withEventFactory)
+//      eventProcessor =
+//      rb.withGating(eventProcessor.getSequence);
+    } yield (rb, BatchEventProcessor[T](rb, rb.barrier, handler))
+
   }
 }

@@ -1,32 +1,29 @@
 package com.promindis.disruptor.port
 
 import java.util.concurrent.atomic.AtomicBoolean
-import com.lmax.disruptor.{AlertException , Sequence, Sequencer, EventProcessor, RingBuffer, SequenceBarrier}
-import Sequencer._
 import com.promindis.disruptor.adapters.Processor
 import annotation.tailrec
 
-trait BatchEventProcessor[T] extends Processor with EventProcessor {
+trait BatchEventProcessor[T] extends Processor {
   type Handler <: EventHandler[T]
   val ringBuffer: RingBuffer[T]
-  val  sequenceBarrier: SequenceBarrier
+  val  sequenceBarrier: SequencesBarrier
   val eventHandler: Handler
   val exceptionHandler: ExceptionHandler
 
   val running: AtomicBoolean = new AtomicBoolean(false)
-  val sequence: Sequence = new Sequence(INITIAL_CURSOR_VALUE)
+  val sequence = RSequence()
 
   override def halt() {
     stopRunning()
-    sequenceBarrier.alert()
+    sequenceBarrier.doAlert()
   }
 
   @inline
   private def nextSequence(l: Long) = {
     try {
-      Some(sequenceBarrier.waitFor(l))
+      sequenceBarrier.waitFor(l)
     } catch  {
-      case ex: AlertException if (!running.get())=> None
       case ex: InterruptedException => None
     }
   }
@@ -105,7 +102,7 @@ trait MonitoredBatchEventProcessor[T] extends BatchEventProcessor[T] {
 }
 
 object BatchEventProcessor {
-  def apply[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: EventHandler[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
+  def apply[T](rb: RingBuffer[T], sb: SequencesBarrier, handler: EventHandler[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new BatchEventProcessor[T]{
       type Handler = EventHandler[T]
       lazy val eventHandler = handler
@@ -114,7 +111,7 @@ object BatchEventProcessor {
       lazy val exceptionHandler = exHandler
     }
 
-  def withLifeCycle[T](rb: RingBuffer[T], sb: SequenceBarrier, handler: LifeCycleAware[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
+  def withLifeCycle[T](rb: RingBuffer[T], sb: SequencesBarrier, handler: LifeCycleAware[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new MonitoredBatchEventProcessor[T]{
       type Handler = LifeCycleAware[T]
       lazy val eventHandler = handler

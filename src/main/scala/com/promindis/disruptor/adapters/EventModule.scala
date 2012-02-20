@@ -1,9 +1,7 @@
 package com.promindis.disruptor.adapters
 
-import com.lmax.disruptor._
 import java.util.concurrent.CountDownLatch
-import util.PaddedLong
-import com.promindis.disruptor.port.EventHandler
+import com.promindis.disruptor.port.{PaddedLong, EventHandler, EventFactory}
 
 /**
  * We need a value event and an event factory to
@@ -13,13 +11,13 @@ import com.promindis.disruptor.port.EventHandler
 
 object EventModule {
   class ValueEvent() {
-    val value = new PaddedLong()
+    val value = PaddedLong()
 
     def setValue(newValue: Long) {
-      value.set(newValue)
+      value.value = newValue
     }
 
-    def getValue = value.get()
+    def getValue = value.value
   }
 
   object ValueEvent {
@@ -27,7 +25,7 @@ object EventModule {
   }
 
   object ValueEventFactory extends EventFactory[ValueEvent]{
-    def newInstance(): ValueEvent = ValueEvent()
+    def apply(): ValueEvent = ValueEvent()
   }
 
   class Handler(name: String, expectedShoot: Long = 0, latch: Option[CountDownLatch] = None) extends EventHandler[ValueEvent]{

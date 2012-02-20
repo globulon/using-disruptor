@@ -61,7 +61,9 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
   BatchDescriptor(if (size < bufferSize) size else bufferSize)
 
   def barrierFor(sequences: RSequence*): SequencesBarrier =
-  ProcessingSequencesBarrier(waitStrategy, cursor, sequences: _*)
+    SequencesBarrier(waitStrategy, cursor, sequences: _*)
+
+  def barrier = SequencesBarrier(waitStrategy, cursor)
 
   def waitForAvailable(value: Long, timeout: Long, unit: TimeUnit, sequences: RSequence*): Option[Long] = {
     @tailrec def loopWaiting(timeSlice: VanishingTime): Option[Long] = {

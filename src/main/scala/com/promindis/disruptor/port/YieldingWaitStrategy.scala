@@ -54,7 +54,8 @@ final class YieldingWaitStrategy() extends WaitStrategy {
   }
 
 
-  def strategyFor(sequence: Long, cursor: RSequence, dependencies: Seq[RSequence]): Strategy = {
+
+  @inline def strategyFor(sequence: Long, cursor: RSequence, dependencies: Seq[RSequence]): Strategy = {
     if (dependencies.size == 0)
       new {
         def apply() = cursor.get() < sequence

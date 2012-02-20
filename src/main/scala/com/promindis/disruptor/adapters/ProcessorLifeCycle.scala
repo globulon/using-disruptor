@@ -1,11 +1,11 @@
 package com.promindis.disruptor.adapters
 
 import java.util.concurrent.Executors._
-import com.lmax.disruptor.Sequence
+import com.promindis.disruptor.port.RSequence
 
 trait Processor extends Runnable{
   def halt()
-  def getSequence: Sequence
+  def getSequence: RSequence
 }
 
 object ProcessorLifeCycle {
