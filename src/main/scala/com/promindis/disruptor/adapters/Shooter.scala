@@ -28,16 +28,13 @@ class Shooter[T](numberOfShoot: Long, val ringBuffer: RingBufferOnSteroids[T], v
 final case class RingBufferOnSteroids[T](ringBuffer: RingBuffer[T]) {
 
   def shoot(update: T => T) {
-    val Some((sequence, event)) = nextEventStructure(ringBuffer)
-    update(event)
-    ringBuffer.publish(sequence);
-  }
-
-  def nextEventStructure[T](rb: RingBuffer[T]) = {
-    for {
-      sequence <- rb.next()
-      bucket = rb.get(sequence)
-    } yield (sequence, bucket)
+    for(
+      sequence <- ringBuffer.next();
+      event = ringBuffer.get(sequence)
+    ) {
+      update(event)
+      ringBuffer.publish(sequence);
+    }
   }
 }
 
