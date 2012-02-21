@@ -21,15 +21,15 @@ case class SingleThreadedClaimStrategy(bufferSize: Int) extends ClaimStrategy {
   @inline override def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long = {
     val newSequence = sequence + delta
     claimSequence.set(newSequence)
-    waitForAvailableSlotAt(dependentSequences: _*)
+    waitForAvailableSlotAt(dependentSequences)
     newSequence
   }
 
-  def waitForAvailableSlotAt(sequences: RSequence*) {
+  @inline def waitForAvailableSlotAt(sequences: Seq[RSequence]) {
     val wrapSequence = sequence - bufferSize
 
     @tailrec
-    def loopWaitingForAvailable(slot: Long): Long = {
+    @inline def loopWaitingForAvailable(slot: Long): Long = {
       if (wrapSequence > slot) {
         LockSupport.parkNanos(1L)
         loopWaitingForAvailable(smallestSlotIn(sequences))
@@ -57,7 +57,7 @@ case class SingleThreadedClaimStrategy(bufferSize: Int) extends ClaimStrategy {
 
   def setSequence(value: Long, sequences: RSequence*) {
     claimSequence.set(value)
-    waitForAvailableSlotAt(sequences: _*)
+    waitForAvailableSlotAt(sequences)
   }
 
   def serialisePublishing(newValue: Long, sequence: RSequence, batchSize: Int)  {
