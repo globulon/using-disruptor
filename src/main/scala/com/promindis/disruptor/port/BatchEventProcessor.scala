@@ -43,8 +43,8 @@ trait BatchEventProcessor[T] extends Processor {
     val last = index == availableSequence
     handlingEvent(index, last) match {
       case lastIndex if last  => lastIndex
-      case Some(_) => handleEvents(index + 1L, availableSequence)
-      case _ => None
+      case None => None
+      case _ => handleEvents(index + 1L, availableSequence)
     }
   }
 

@@ -6,7 +6,7 @@ import com.promindis.disruptor.adapters.{ProcessorFactory, Processor}
 
 
 final case class Configuration(
-  ringBufferSize: Int = 1024 * 64,
+  ringBufferSize: Int = 1024 * 128,
   iterations: Long = 1024L * 1024L * 64,
   runs: Int  = 8
 )
