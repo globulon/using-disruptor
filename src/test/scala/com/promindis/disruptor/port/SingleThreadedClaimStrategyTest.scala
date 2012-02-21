@@ -3,9 +3,9 @@ package com.promindis.disruptor.port
 import org.specs2.mutable.Specification
 
 /**
- * Date: 08/02/12
- * Time: 11:25
- */
+* Date: 08/02/12
+* Time: 11:25
+*/
 
 final class SingleThreadedClaimStrategyTest extends Specification {
 
@@ -25,17 +25,17 @@ final class SingleThreadedClaimStrategyTest extends Specification {
 
   "hasAvailableCapacity " should {
     "return true when a dependent sequences allows it " in {
-      claim.hasAvailableCapacity(1, RSequence(5L)).isSuccess
+      claim.hasAvailableCapacity(1, Seq(RSequence(5L))).isSuccess
     }
 
     "return true when all dependent sequences allows it " in {
-      claim.hasAvailableCapacity(1, RSequence(3L), RSequence(5L)).isSuccess
+      claim.hasAvailableCapacity(1, Seq(RSequence(3L), RSequence(5L))).isSuccess
     }
 
     "return false when minmum dependent sequences does not allow it" in {
       val aClaim = claim
       aClaim.setSequence(131L, RSequence(3L), RSequence(5L))
-      aClaim.hasAvailableCapacity(1, RSequence(3L), RSequence(5L)).isFailure
+      aClaim.hasAvailableCapacity(1, Seq(RSequence(3L), RSequence(5L))).isFailure
     }
   }
 
@@ -43,7 +43,7 @@ final class SingleThreadedClaimStrategyTest extends Specification {
     "update sequence with greater dependent sequences values " in {
       val aClaim = claim
       aClaim.setSequence(1, RSequence(3L), RSequence(5L))
-      aClaim.hasAvailableCapacity(1, RSequence(3L), RSequence(5L)).isSuccess
+      aClaim.hasAvailableCapacity(1, Seq(RSequence(3L), RSequence(5L))).isSuccess
     }
   }
 
@@ -58,14 +58,14 @@ final class SingleThreadedClaimStrategyTest extends Specification {
   "increment and Get " should {
     "increment value while possible " in {
       val aClaim = claim
-      Range(1,133).foreach( _ => aClaim.incrementAndGet(RSequence(3L), RSequence(5L)))
-      aClaim.hasAvailableCapacity(1, RSequence(3L), RSequence(5L)).isFailure
+      Range(1,133).foreach( _ => aClaim.incrementAndGet(Seq(RSequence(3L), RSequence(5L))))
+      aClaim.hasAvailableCapacity(1, Seq(RSequence(3L), RSequence(5L))).isFailure
     }
 
     "increment with delta if  possible " in {
       val aClaim = claim
-      aClaim.incrementAndGet(132, RSequence(3L), RSequence(5L))
-      aClaim.hasAvailableCapacity(1, RSequence(3L), RSequence(5L)).isFailure
+      aClaim.incrementAndGet(132, Seq(RSequence(3L), RSequence(5L)))
+      aClaim.hasAvailableCapacity(1, Seq(RSequence(3L), RSequence(5L))).isFailure
     }
   }
 

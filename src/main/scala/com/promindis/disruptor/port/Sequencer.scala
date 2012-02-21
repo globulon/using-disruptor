@@ -21,10 +21,10 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
   def cursorValue = cursor.get()
 
   def next(): Option[Long] = {
-    gatingSequences match {
-      case None => None
-      case _ => Some(claimStrategy.incrementAndGet(gatingSequences.get: _*))
-    }
+    if (gatingSequences.isDefined)
+      Some(claimStrategy.incrementAndGet(gatingSequences.get))
+    else
+      None
   }
 
   def next(timeout: Long, unit: TimeUnit): Option[Long] = {
@@ -32,20 +32,21 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
           sequences <- gatingSequences
         _ <- waitForAvailable(1, timeout, unit, sequences: _*)
     }
-    yield claimStrategy.incrementAndGet(sequences: _*)
+    yield claimStrategy.incrementAndGet(sequences)
   }
 
   def next(descriptor: BatchDescriptor): Option[BatchDescriptor] = {
-    for {
-      sequences <- gatingSequences
-    } yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
+    if (gatingSequences.isDefined)
+      Some(descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, gatingSequences.get)))
+    else
+      None
   }
 
   def next(descriptor: BatchDescriptor, timeout: Long, unit: TimeUnit): Option[BatchDescriptor] = {
     for {
       sequences <- gatingSequences
       _ <- waitForAvailable(descriptor.size, timeout, unit, sequences: _*)
-    } yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
+    } yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences))
 
   }
 
@@ -65,7 +66,7 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
   def waitForAvailable(value: Long, timeout: Long, unit: TimeUnit, sequences: RSequence*): Option[Long] = {
     @tailrec def loopWaiting(timeSlice: VanishingTime): Option[Long] = {
       timeSlice match {
-        case _ if claimStrategy.hasAvailableCapacity(value, sequences: _*) => Some(value)
+        case _ if claimStrategy.hasAvailableCapacity(value, sequences) => Some(value)
         case _ if timeSlice.overdue() => None
         case _ => loopWaiting(timeSlice.reduce())
       }

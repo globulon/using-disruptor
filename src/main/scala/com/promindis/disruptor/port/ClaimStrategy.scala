@@ -10,11 +10,11 @@ trait ClaimStrategy {
       cursor.set(sequence)
   }
 
-  def incrementAndGet(seq: RSequence*): Long
+  def incrementAndGet(seq: Seq[RSequence]): Long
 
-  def incrementAndGet(delta: Long, dependentSequences: RSequence*): Long
+  def incrementAndGet(delta: Long, dependentSequences: Seq[RSequence]): Long
 
   def bufferSize: Int
 
-  def hasAvailableCapacity(expected: Long, sequences: RSequence*): Boolean
+  def hasAvailableCapacity(expected: Long, sequences: Seq[RSequence]): Boolean
 }
