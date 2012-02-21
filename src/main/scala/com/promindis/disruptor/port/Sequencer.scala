@@ -90,8 +90,7 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
     publish(batchDescriptor.end, batchDescriptor.size)
   }
 
-  def publish(sequence: Long, batchSize: Long)
-  {
+  def publish(sequence: Long, batchSize: Long) {
     claimStrategy.serialisePublishing(sequence, cursor, batchSize);
     waitStrategy.signalAllWhenBlocking();
   }

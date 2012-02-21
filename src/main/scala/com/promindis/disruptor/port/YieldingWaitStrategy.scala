@@ -25,7 +25,7 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     } yield result
   }
 
-  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingStrategy, alerted: => Boolean, time: VanishingTime): Option[Long] = {
+  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, alerted: => Boolean, time: VanishingTime): Option[Long] = {
     counter match {
       case _ if (time.overdue()) => keepWaiting.result()
       case _ if (alerted) => None
@@ -37,7 +37,7 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     }
   }
 
-  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingStrategy, alerted: => Boolean): Option[Long] = {
+  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, alerted: => Boolean): Option[Long] = {
     counter match {
       case _ if (alerted) => None
       case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, alerted)
@@ -48,27 +48,14 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     }
   }
 
-  @inline def strategyFor(sequence: Long, cursor: RSequence, dependencies: Seq[RSequence]): WaitingStrategy = {
+  @inline def strategyFor(sequence: Long, cursor: RSequence, dependencies: Seq[RSequence]): WaitingCriteria = {
     if (dependencies.size == 0)
       WaitOnlyForCusor(sequence, cursor)
     else
       WaitForDependencies(sequence, dependencies)
   }
 }
- trait WaitingStrategy {
-   def apply(): Boolean
-   def result(): Option[Long]
- }
 
-final case class WaitOnlyForCusor(sequence: Long, cursor: RSequence) extends WaitingStrategy{
-  override def apply() = cursor.get() < sequence
-  override def result() = Some(cursor.get())
-}
-
-final case class WaitForDependencies(sequence: Long, dependencies: Seq[RSequence]) extends WaitingStrategy{
-  override def apply() = smallestSlotIn(dependencies) < sequence
-  override def result() = Some(smallestSlotIn(dependencies))
-}
 
 
 object YieldingWaitStrategy {

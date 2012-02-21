@@ -3,7 +3,7 @@ package com.promindis.disruptor.port
 /**
  * Date: 08/02/12
  * Time: 14:23
- * @todo eveluate overhead to to getter methods
+ * @todo eveluate overhead of getter methods
  */
 
 final class PaddedLong(var value: Long) extends Mutable{
