@@ -11,19 +11,27 @@ import actors.threadpool.TimeUnit
 trait WaitStrategy {
   def signalAllWhenBlocking() {}
 
-  def waitFor(
-               sequence: Long,
+  def waitFor( sequence: Long,
                cursor: RSequence,
-               barrier: SequencesBarrier ,
-               dependents: RSequence*): Option[Long]
+               barrier: SequencesBarrier ): Option[Long]
 
-  def waitFor(
-               timeout: Long,
+
+  def waitFor( sequence: Long,
+               barrier: SequencesBarrier ,
+               dependents: Seq[RSequence]): Option[Long]
+
+  def waitFor(timeout: Long,
+              sourceUnit: TimeUnit,
+              sequence: Long,
+              cursor: RSequence,
+              barrier: SequencesBarrier ): Option[Long]
+
+
+  def waitFor(timeout: Long,
                sourceUnit: TimeUnit,
                sequence: Long,
-               cursor: RSequence,
                barrier: SequencesBarrier ,
-               dependents: RSequence*): Option[Long]
+               dependents: Seq[RSequence]): Option[Long]
 
 //  def signalAllWhenBlocking: Unit
 }

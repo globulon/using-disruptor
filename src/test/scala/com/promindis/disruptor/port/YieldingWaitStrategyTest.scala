@@ -17,7 +17,7 @@ final class YieldingWaitStrategyTest extends Specification {
   def setup = {
     val cursor = RSequence()
     val waitStrategy = YieldingWaitStrategy()
-    val barrier = ProcessingSequencesBarrier(waitStrategy, cursor)
+    val barrier = SequencesBarrier(waitStrategy, cursor)
     (waitStrategy, cursor, barrier)
   }
 
@@ -39,11 +39,11 @@ final class YieldingWaitStrategyTest extends Specification {
       val sequences = dependentSequences()
 
       val result = submitFragment {
-        waitStrategy.waitFor(5, cursor, barrier, sequences: _*)
+        waitStrategy.waitFor(5, barrier, sequences)
       }
 
-      sequences.map{s => s.set(s.get() + 6)}
-      result.get(2, SECONDS).should(beEqualTo(Some(9L)))
+      sequences(0).set(9L)
+      result.get(2, SECONDS).should(beEqualTo(Some(7L)))
     }
   }
 
@@ -62,11 +62,11 @@ final class YieldingWaitStrategyTest extends Specification {
       val sequences = dependentSequences()
 
       val result = submitFragment {
-        waitStrategy.waitFor(5L,  Unit.SECONDS, 5L, cursor, atBarrier, sequences: _*)
+        waitStrategy.waitFor(5L,  Unit.SECONDS, 5L, atBarrier, sequences)
       }
 
-      sequences.map{s => s.set(s.get()  + 6L)}
-      result.get(2, SECONDS).should(beEqualTo(Some(9L)))
+      sequences(0).set(9L)
+      result.get(2, SECONDS).should(beEqualTo(Some(7L)))
     }
 
     "return cursor value after timeout elapsed" in {
@@ -83,9 +83,8 @@ final class YieldingWaitStrategyTest extends Specification {
       val (waitStrategy, cursor, atBarrier) = setup
 
       val result = submitFragment {
-        waitStrategy.waitFor(1L, Unit.SECONDS, 5L, cursor, atBarrier, dependentSequences() :_*)
+        waitStrategy.waitFor(1L, Unit.SECONDS, 5L, atBarrier, dependentSequences())
       }
-
       result.get(2, SECONDS).should(beEqualTo(Some(3L)))
     }
   }

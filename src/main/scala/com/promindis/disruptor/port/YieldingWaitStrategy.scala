@@ -13,23 +13,27 @@ import collection.Seq
 final class YieldingWaitStrategy() extends WaitStrategy {
   import YieldingWaitStrategy._
 
-  def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequencesBarrier, dependents: RSequence*) = {
-    for {
-      result <- waitForSequence(COUNTER, strategyFor(sequence, cursor, dependents), barrier.alerted, VanishingTime(interval = sourceUnit.toMillis(timeout)))
-    } yield result
+  override def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, cursor: RSequence, barrier: SequencesBarrier) = {
+      waitForSequence(COUNTER, OnlyForCusor(sequence, cursor), barrier, VanishingTime(interval = sourceUnit.toMillis(timeout)))
   }
 
-  def waitFor(sequence: Long, cursor: RSequence, barrier: SequencesBarrier, dependents: RSequence*) = {
-    for {
-      result <- waitForSequence(COUNTER, strategyFor(sequence, cursor, dependents), barrier.alerted)
-    } yield result
+  override def waitFor(timeout: Long, sourceUnit: TimeUnit, sequence: Long, barrier: SequencesBarrier, dependents: Seq[RSequence]) = {
+      waitForSequence(COUNTER, ForDependencies(sequence, dependents), barrier, VanishingTime(interval = sourceUnit.toMillis(timeout)))
   }
 
-  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, alerted: => Boolean, time: VanishingTime): Option[Long] = {
+  override def waitFor(sequence: Long, cursor: RSequence, barrier: SequencesBarrier) = {
+      waitForSequence(COUNTER, OnlyForCusor(sequence, cursor), barrier)
+  }
+
+  override def waitFor(sequence: Long, barrier: SequencesBarrier, dependents: Seq[RSequence]) = {
+      waitForSequence(COUNTER, ForDependencies(sequence, dependents), barrier)
+  }
+
+  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, barrier: SequencesBarrier, time: VanishingTime): Option[Long] = {
     counter match {
       case _ if (time.overdue()) => keepWaiting.result()
-      case _ if (alerted) => None
-      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, alerted, time.reduce())
+      case _ if (barrier.alerted) => None
+      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, barrier, time.reduce())
       case 0 =>
         Thread.`yield`()
         keepWaiting.result()
@@ -37,10 +41,10 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     }
   }
 
-  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, alerted: => Boolean): Option[Long] = {
+  @tailrec def waitForSequence(counter: Int, keepWaiting: WaitingCriteria, barrier: SequencesBarrier): Option[Long] = {
     counter match {
-      case _ if (alerted) => None
-      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, alerted)
+      case _ if (barrier.alerted) => None
+      case _ if (keepWaiting()) => waitForSequence(counter - 1, keepWaiting, barrier)
       case 0 =>
         Thread.`yield`()
         keepWaiting.result()
@@ -48,15 +52,7 @@ final class YieldingWaitStrategy() extends WaitStrategy {
     }
   }
 
-  @inline def strategyFor(sequence: Long, cursor: RSequence, dependencies: Seq[RSequence]): WaitingCriteria = {
-    if (dependencies.size == 0)
-      WaitOnlyForCusor(sequence, cursor)
-    else
-      WaitForDependencies(sequence, dependencies)
-  }
 }
-
-
 
 object YieldingWaitStrategy {
  val COUNTER = 100

@@ -29,8 +29,10 @@ object SequencesBarrier {
             dependentSequences: RSequence*) =
 
     if (dependentSequences.size == 0)
-      ProcessingSequencesBarrier(waitStrategy, cursor, dependentSequences: _*)
-    else ProcessingBarrierWithNoDependencies(waitStrategy, cursor)
+    ProcessingBarrierWithNoDependencies(waitStrategy, cursor)
+  else
+    ProcessingSequencesBarrier(waitStrategy, cursor, dependentSequences)
+
 }
 
 protected final case class
@@ -52,17 +54,17 @@ ProcessingBarrierWithNoDependencies( waitStrategy: WaitStrategy,
 
 protected final case class ProcessingSequencesBarrier (waitStrategy: WaitStrategy,
                                        cursor: RSequence,
-                                       dependentSequences: RSequence*
+                                       dependentSequences: Seq[RSequence]
 ) extends SequencesBarrier {
 
   override def waitFor(sequence: Long): Option[Long] = {
     if (alerted) None
-    else waitStrategy.waitFor(sequence, cursor, this,  dependentSequences: _*)
+    else waitStrategy.waitFor(sequence, this,  dependentSequences)
   }
 
   override def waitFor(duration: Long, units: TimeUnit, sequence: Long) = {
     if (alerted) None
-    else waitStrategy.waitFor(duration, units, sequence, cursor, this,  dependentSequences: _*)
+    else waitStrategy.waitFor(duration, units, sequence, this,  dependentSequences)
   }
 
   def cursorValue = cursor.get()

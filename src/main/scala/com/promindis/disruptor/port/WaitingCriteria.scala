@@ -23,12 +23,12 @@ trait WaitingCriteria {
 }
 
 
-final case class WaitOnlyForCusor(sequence: Long, cursor: RSequence) extends WaitingCriteria{
+final case class OnlyForCusor(sequence: Long, cursor: RSequence) extends WaitingCriteria{
   override def apply() = cursor.get() < sequence
   override def result() = Some(cursor.get())
 }
 
-final case class WaitForDependencies(sequence: Long, dependencies: Seq[RSequence]) extends WaitingCriteria{
+final case class ForDependencies(sequence: Long, dependencies: Seq[RSequence]) extends WaitingCriteria{
   override def apply() = smallestSlotIn(dependencies) < sequence
   override def result() = Some(smallestSlotIn(dependencies))
 }

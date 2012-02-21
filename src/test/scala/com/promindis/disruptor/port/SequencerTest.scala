@@ -43,12 +43,12 @@ class SequencerTest extends Specification {
     }
   }
 
-  "New barrier " should {
-    "produce barrier holding on cursor" in {
-      val s = sequencer
-      s.barrierFor(RSequence()).cursorValue.shouldEqual(s.cursorValue)
-    }
-  }
+//  "New barrier " should {
+//    "produce barrier holding on cursor" in {
+//      val s = sequencer
+//      s.barrierFor(RSequence()).cursorValue.shouldEqual(s.cursorValue)
+//    }
+//  }
 
   "incrementAndGet " should {
 

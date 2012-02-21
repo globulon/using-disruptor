@@ -20,13 +20,10 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
 
   def cursorValue = cursor.get()
 
-  def safely[T](f: (Seq[RSequence])=> T): Option[T] = {
-    for {sequences <- gatingSequences} yield f(sequences)
-  }
-
   def next(): Option[Long] = {
-    safely { sequences  =>
-      claimStrategy.incrementAndGet(sequences: _*)
+    gatingSequences match {
+      case None => None
+      case _ => Some(claimStrategy.incrementAndGet(gatingSequences.get: _*))
     }
   }
 
@@ -39,9 +36,9 @@ class Sequencer(val claimStrategy: ClaimStrategy, val waitStrategy: WaitStrategy
   }
 
   def next(descriptor: BatchDescriptor): Option[BatchDescriptor] = {
-    safely { sequences  =>
-      descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
-    }
+    for {
+      sequences <- gatingSequences
+    } yield descriptor.withEnd(claimStrategy.incrementAndGet(descriptor.size, sequences: _*))
   }
 
   def next(descriptor: BatchDescriptor, timeout: Long, unit: TimeUnit): Option[BatchDescriptor] = {
