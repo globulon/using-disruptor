@@ -15,8 +15,8 @@ object PipeLine extends Scenario{
     val countDownLatch = new CountDownLatch(1)
 
     val chain = for {
-      _ <- pipe(Handler("C1",expectedShoot = config.iterations), rb)
-      _ <- pipe(Handler("C2", expectedShoot = config.iterations), rb)
+      _ <- pipe(Handler("C1"), rb)
+      _ <- pipe(Handler("C2"), rb)
       _ <- pipe(Handler("C3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
     } yield ()
 

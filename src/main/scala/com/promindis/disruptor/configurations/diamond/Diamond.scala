@@ -21,8 +21,8 @@ object Diamond extends Scenario {
     val countDownLatch = new CountDownLatch(1);
 
     val diamond = for {
-      barrier <- fork(Handler("C1", expectedShoot = config.iterations), rb, rb.barrier)
-      _ <- fork(Handler("C2", expectedShoot = config.iterations), rb, barrier)
+      barrier <- fork(Handler("C1"), rb, rb.barrier)
+      _ <- fork(Handler("C2"), rb, barrier)
       _ <- join(Handler("C3", latch = Some(countDownLatch), expectedShoot = config.iterations), rb)
     } yield ()
 

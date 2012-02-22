@@ -19,6 +19,7 @@ object Utils {
   }
 
 
-  @inline def smallestSlotIn(sequences: Seq[RSequence]): Long = sequences.min.get()
+  @inline def smallestSlotIn(sequences: Seq[RSequence]): Long =
+    sequences.foldLeft(Long.MaxValue){(acc, curr) => if (acc < curr.get()) acc else curr.get()}
 
 }

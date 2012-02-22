@@ -8,7 +8,7 @@ import com.promindis.disruptor.adapters.{ProcessorFactory, Processor}
 final case class Configuration(
   ringBufferSize: Int = 1024 * 64,
   iterations: Long = 1024L * 1024L * 64L,
-  runs: Int  = 4
+  runs: Int  = 8
 )
 
 trait Scenario {
