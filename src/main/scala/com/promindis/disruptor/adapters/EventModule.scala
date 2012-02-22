@@ -1,7 +1,7 @@
 package com.promindis.disruptor.adapters
 
 import java.util.concurrent.CountDownLatch
-import com.promindis.disruptor.port.{PaddedLong, EventHandler, EventFactory}
+import com.promindis.disruptor.port.{EventHandler, EventFactory}
 
 /**
  * We need a value event and an event factory to
@@ -25,6 +25,7 @@ object EventModule {
     override def onEvent(event: ValueEvent, sequence: Long, endOfBatch: Boolean) = {
       counter += 1L
       if (counter == expectedShoot) {
+//        println("Received: " + counter + " events ")
         for (l <- latch)
           l.countDown()
       }

@@ -40,7 +40,7 @@ trait BatchEventProcessor[T] extends Processor {
   }
 
   @tailrec private def handleEvents(index: Long, availableSequence: Long): Option[Long]  = {
-    val last = index == availableSequence
+    val last = index >= availableSequence
     handlingEvent(index, last) match {
       case lastIndex if last  => lastIndex
       case None => None
