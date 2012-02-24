@@ -6,10 +6,10 @@ import annotation.tailrec
 
 trait BatchEventProcessor[T] extends Processor {
   type Handler <: EventHandler[T]
-  val ringBuffer: RingBuffer[T]
-  val  sequenceBarrier: SequencesBarrier
-  val eventHandler: Handler
-  val exceptionHandler: ExceptionHandler
+  def ringBuffer: RingBuffer[T]
+  def  sequenceBarrier: SequencesBarrier
+  def eventHandler: Handler
+  def exceptionHandler: ExceptionHandler
 
   val running: AtomicBoolean = new AtomicBoolean(false)
   val sequence = RSequence()
@@ -105,19 +105,19 @@ object BatchEventProcessor {
   def apply[T](rb: RingBuffer[T], sb: SequencesBarrier, handler: EventHandler[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new BatchEventProcessor[T]{
       type Handler = EventHandler[T]
-      lazy val eventHandler = handler
-      lazy val ringBuffer = rb
-      lazy val sequenceBarrier = sb
-      lazy val exceptionHandler = exHandler
+      override lazy val eventHandler = handler
+      override val ringBuffer = rb
+      override val sequenceBarrier = sb
+      override val exceptionHandler = exHandler
     }
 
   def withLifeCycle[T](rb: RingBuffer[T], sb: SequencesBarrier, handler: LifeCycleAware[T], exHandler: ExceptionHandler = FatalExceptionHandler()) =
     new MonitoredBatchEventProcessor[T]{
       type Handler = LifeCycleAware[T]
-      lazy val eventHandler = handler
-      lazy val ringBuffer = rb
-      lazy val sequenceBarrier = sb
-      lazy val exceptionHandler = exHandler
+      override lazy val eventHandler = handler
+      override lazy val ringBuffer = rb
+      override lazy val sequenceBarrier = sb
+      override lazy val exceptionHandler = exHandler
     }
 
 }
